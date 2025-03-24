@@ -2,17 +2,18 @@
 
 namespace App\Models;
 
+use App\Models\Traits\HasTranslations;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class Translation extends Model
 {
-    use HasFactory;
+    use HasFactory, HasTranslations;
 
-    public function translatable()
-    {
-        return $this->morphTo();
-    }
+    // public function translatable()
+    // {
+    //     return $this->morphTo();
+    // }
 
     public function logs()
     {
