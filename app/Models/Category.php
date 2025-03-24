@@ -2,21 +2,22 @@
 
 namespace App\Models;
 
+use App\Models\Traits\HasTranslations;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class Category extends Model
 {
-    use HasFactory;
+    use HasFactory, HasTranslations;
 
     public function places(){
         return $this->belongsToMany(Place::class,'place_categories');
     }
 
-    public function translations()
-    {
-        return $this->morphMany(Translation::class, 'translatable');
-    }
+    // public function translations()
+    // {
+    //     return $this->morphMany(Translation::class, 'translatable');
+    // }
 
     public function logs()
     {

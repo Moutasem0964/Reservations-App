@@ -2,13 +2,13 @@
 
 namespace App\Models;
 
+use App\Models\Traits\HasTranslations;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use PhpParser\Node\Expr\AssignOp\Plus;
 
 class Table extends Model
 {
-    use HasFactory;
+    use HasFactory, HasTranslations;
 
     public function place(){
         return $this->belongsTo(Place::class);
@@ -18,10 +18,10 @@ class Table extends Model
         return $this->hasMany(Reservation::class);
     }
 
-    public function translations()
-    {
-        return $this->morphMany(Translation::class, 'translatable');
-    }
+    // public function translations()
+    // {
+    //     return $this->morphMany(Translation::class, 'translatable');
+    // }
 
     public function logs()
     {

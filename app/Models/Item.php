@@ -2,21 +2,22 @@
 
 namespace App\Models;
 
+use App\Models\Traits\HasTranslations;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class Item extends Model
 {
-    use HasFactory;
+    use HasFactory, HasTranslations;
 
     public function menu(){
         return $this->belongsTo(Menu::class);
     }
 
-    public function translations()
-    {
-        return $this->morphMany(Translation::class, 'translatable');
-    }
+    // public function translations()
+    // {
+    //     return $this->morphMany(Translation::class, 'translatable');
+    // }
 
     public function logs()
     {

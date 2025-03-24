@@ -2,12 +2,13 @@
 
 namespace App\Models;
 
+use App\Models\Traits\HasTranslations;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class Survey_result extends Model
 {
-    use HasFactory;
+    use HasFactory, HasTranslations;
 
     public function client(){
         return $this->belongsTo(Client::class,'client_id');
@@ -17,10 +18,10 @@ class Survey_result extends Model
         return $this->belongsTo(Survey_answer::class,'answer_id');
     }
 
-    public function translations()
-    {
-        return $this->morphMany(Translation::class, 'translatable');
-    }
+    // public function translations()
+    // {
+    //     return $this->morphMany(Translation::class, 'translatable');
+    // }
 
     public function logs()
     {

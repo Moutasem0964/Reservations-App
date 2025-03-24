@@ -2,12 +2,13 @@
 
 namespace App\Models;
 
+use App\Models\Traits\HasTranslations;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class Menu extends Model
 {
-    use HasFactory;
+    use HasFactory, HasTranslations;
 
     public function place(){
         return $this->belongsTo(Place::class);
@@ -17,10 +18,10 @@ class Menu extends Model
         return $this->hasMany(Item::class);
     }
 
-    public function translations()
-    {
-        return $this->morphMany(Translation::class, 'translatable');
-    }
+    // public function translations()
+    // {
+    //     return $this->morphMany(Translation::class, 'translatable');
+    // }
 
     public function logs()
     {

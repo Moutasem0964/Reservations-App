@@ -2,21 +2,22 @@
 
 namespace App\Models;
 
+use App\Models\Traits\HasTranslations;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class Survey_question extends Model
 {
-    use HasFactory;
+    use HasFactory, HasTranslations;
 
     public function survey_answers(){
         return $this->hasMany(Survey_answer::class,'question_id');
     }
 
-    public function translations()
-    {
-        return $this->morphMany(Translation::class, 'translatable');
-    }
+    // public function translations()
+    // {
+    //     return $this->morphMany(Translation::class, 'translatable');
+    // }
 
     public function logs()
     {
