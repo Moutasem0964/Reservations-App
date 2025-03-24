@@ -15,6 +15,7 @@ return new class extends Migration
             $table->id();
             $table->foreignId('user_id')->constrained('users')->cascadeOnDelete();
             $table->foreignId('place_id')->constrained('places')->cascadeOnDelete();
+            $table->boolean('is_verified')->default(false);
             $table->index(['user_id','place_id']);
             $table->timestamps();
         });
