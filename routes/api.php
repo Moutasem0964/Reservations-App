@@ -36,13 +36,13 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 |--------------------------------------------------------------------------
 */
 
-// Public endpoints for viewing places or performing searches
-Route::get('/places', [PlaceController::class, 'index']);
-Route::get('/places/{id}', [PlaceController::class, 'show']);
-Route::get('/places/search', [PlaceController::class, 'search']);
 
-// Client authentication and account management
-Route::post('/register', [AuthController::class, 'register']);
+
+// Authentication and account management
+Route::post('/client/register', [AuthController::class, 'client_register']);
+Route::post('/manager/register', [AuthController::class, 'manager_register']);
+Route::post('/admin/register', [AuthController::class, 'admin_register'])->middleware(['auth:sanctum','role:super_admin']);
+
 Route::post('/login', [AuthController::class, 'login']);
 Route::post('/password/forgot', [AuthController::class, 'forgotPassword']);
 

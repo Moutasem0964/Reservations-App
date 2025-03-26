@@ -63,17 +63,23 @@ class User extends Authenticatable
     }
 
     public function getRoleAttribute(){
-    if ($this->client) {
-        return 'client';
-    } elseif ($this->manager) {
-        return 'manager';
-    } elseif ($this->employee) {
-        return 'employee';
-    } elseif ($this->admin) {
-        return 'admin';
+        if ($this->client) {
+            return 'client';
+        } 
+        elseif ($this->manager) {
+            return 'manager';
+        } 
+        elseif ($this->employee) {
+            return 'employee';
+        } 
+        elseif ($this->admin) {
+            if($this->admin->is_super){
+                return 'super_admin';
+            }
+            return 'admin';
+        }
+        return 'unknown'; // Default if the user has no role  
     }
-    return 'unknown'; // Default if the user has no role
-}
 
 
     public function verificationCodes()

@@ -20,6 +20,7 @@ return new class extends Migration
             $table->double('longitude');
             $table->enum('type',['restaurrant','cafe']);
             $table->integer('reservation_duration')->default(3);
+            $table->boolean('is_active')->default(false);
             $table->timestamps();
             $table->softDeletes();
         });
