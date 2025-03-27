@@ -4,14 +4,14 @@ namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
 
-class StoreVerificationCodeRequest extends FormRequest
+class ManagerLoginRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
      */
     public function authorize(): bool
     {
-        return false;
+        return true;
     }
 
     /**
@@ -22,7 +22,9 @@ class StoreVerificationCodeRequest extends FormRequest
     public function rules(): array
     {
         return [
-            //
+            'phone_number'=>'required | string',
+            'password'=>'required | string',
+            'verification_code'=>'required | string' 
         ];
     }
 }

@@ -11,6 +11,19 @@ class Place extends Model
 {
     use HasFactory, SoftDeletes, HasTranslations;
 
+    protected $fillable = [
+        'name',
+        'address',
+        'phone_number',
+        'latitude',
+        'longitude',
+        'type',
+        'reservation_duration',
+        'description',
+        'photo_path',
+        'is_active'
+    ];
+
     public function managers()
     {
         return $this->hasMany(Manager::class);

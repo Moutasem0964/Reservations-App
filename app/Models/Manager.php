@@ -10,6 +10,12 @@ class Manager extends Model
 {
     use HasFactory, HasTranslations;
 
+    protected $fillable = [
+        'user_id',
+        'place_id',
+        'is_verified'
+    ];
+
     public function user(){
         return $this->belongsTo(User::class);
     }

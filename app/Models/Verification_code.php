@@ -11,7 +11,16 @@ class Verification_code extends Model
 {
     use HasFactory, SoftDeletes, HasTranslations;
 
-    public function user(){
+    protected $fillable = [
+        'user_id',
+        'code',
+        'code_type',
+        'expires_at',
+        'is_verified'
+    ];
+
+    public function user()
+    {
         return $this->belongsTo(User::class);
     }
 

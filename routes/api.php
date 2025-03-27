@@ -29,7 +29,7 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
 });
 
-
+//Route::delete('/places/{id}', [PlaceController::class, 'destroy']);
 /*
 |--------------------------------------------------------------------------
 | Public Routes
@@ -40,7 +40,9 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 
 // Authentication and account management
 Route::post('/client/register', [AuthController::class, 'client_register']);
+Route::post('/employee/register', [AuthController::class, 'employee_register'])->middleware(['auth:sanctum','role:manager']);
 Route::post('/manager/register', [AuthController::class, 'manager_register']);
+Route::post('/manager/login', [AuthController::class, 'manager_login']);
 Route::post('/admin/register', [AuthController::class, 'admin_register'])->middleware(['auth:sanctum','role:super_admin']);
 
 Route::post('/login', [AuthController::class, 'login']);
@@ -116,6 +118,9 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::prefix('admin')->group(function () {
         // Manage Users (listing, enabling/disabling, deleting)
         Route::apiResource('users', UserController::class)->only(['index', 'update', 'destroy']);
+
+        // Manage Managers (listing, enabling/disabling, deleting)
+
         
         // Manage Places (restaurants/cafés)
         Route::apiResource('places', PlaceController::class)->only(['index', 'update', 'destroy']);

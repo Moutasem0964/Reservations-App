@@ -20,6 +20,8 @@ return new class extends Migration
             $table->double('longitude');
             $table->enum('type',['restaurrant','cafe']);
             $table->integer('reservation_duration')->default(3);
+            $table->text('description')->nullable();
+            $table->string('photo_path')->nullable();
             $table->boolean('is_active')->default(false);
             $table->timestamps();
             $table->softDeletes();
