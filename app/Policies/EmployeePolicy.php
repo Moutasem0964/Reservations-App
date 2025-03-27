@@ -5,6 +5,8 @@ namespace App\Policies;
 use App\Models\Employee;
 use App\Models\User;
 use Illuminate\Auth\Access\Response;
+use Illuminate\Support\Facades\Log;
+use PgSql\Lob;
 
 class EmployeePolicy
 {
@@ -29,7 +31,8 @@ class EmployeePolicy
      */
     public function create(User $user): bool
     {
-        return $user->is_verfied===true;
+        
+        return $user->is_active == true;
     }
 
     /**

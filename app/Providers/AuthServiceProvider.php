@@ -6,6 +6,7 @@ namespace App\Providers;
 use Illuminate\Foundation\Support\Providers\AuthServiceProvider as ServiceProvider;
 
 use App\Models\Analytics;
+use App\Models\Employee;
 use App\Models\Favorate;
 use App\Models\Menu;
 use App\Models\Notification;
@@ -18,6 +19,7 @@ use App\Models\Survey_question;
 use App\Models\Table;
 use App\Models\User;
 use App\Policies\AnalyticsPolicy;
+use App\Policies\EmployeePolicy;
 use App\Policies\FavoratePolicy;
 use App\Policies\MenuPolicy;
 use App\Policies\NotificationPolicy;
@@ -47,6 +49,7 @@ class AuthServiceProvider extends ServiceProvider
         Survey_question::class => SurveyPolicy::class,
         Table::class => TablePolicy::class,
         User::class => UserPolicy::class,
+        Employee::class=>EmployeePolicy::class
     ];
 
     /**

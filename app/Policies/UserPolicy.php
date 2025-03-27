@@ -34,9 +34,9 @@ class UserPolicy
     /**
      * Determine whether the user can update the model.
      */
-    public function update(User $user, User $model): bool
+    public function update(User $admin, User $user): bool
     {
-        //
+        return $admin->id !== $user->id && $admin->is_active;
     }
 
     /**

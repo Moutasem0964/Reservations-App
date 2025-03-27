@@ -176,6 +176,7 @@ class AuthController extends Controller
         $verificationCode->update([
             'is_verified'=>true
         ]);
+        $user->manager()->update(['is_verified'=>true]);
         $user->tokens()->delete();
         $token = $user->createToken('auth-token', [$user->role])->plainTextToken;
         return response()->json([
@@ -199,11 +200,20 @@ class AuthController extends Controller
             'preferences' => $validated['preferences'] ?? null,
             'is_active' => true,
         ]);
-        $user->employee()->create([
+        $manager = auth()->user()->load('manager.place')->manager;
+        $emp=$user->employee()->create([
             'user_id'=>$user->id,
-            'place_id'=>auth()->user()->place()->id
+            'place_id'=>$manager->place->id
         ]);
         $token=$user->createToken('auth-token',[$user->role])->plainTextToken;
+        $authUser=auth()->user();
+        $user->logs()->create([
+            'user_id'=>$authUser->id,
+            'user_role'=>$authUser->role,
+            'action_type'=>'registring an employee',
+            'object_type'=>'Employee',
+            'object_id'=>$emp->id
+        ]);
         return response()->json([
             'messgae'=>'created successfuly',
             'token'=>$token,

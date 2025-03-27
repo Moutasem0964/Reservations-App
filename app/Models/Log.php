@@ -11,6 +11,14 @@ class Log extends Model
 {
     use HasFactory, SoftDeletes, HasTranslations;
 
+    protected $fillable=[
+        'user_id',
+        'user_role',
+        'action_type',
+        'object_type',
+        'object_id'
+    ];
+
     public function user(){
         return $this->belongsTo(User::class);
     }

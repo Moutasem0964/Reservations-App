@@ -30,11 +30,7 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 });
 
 //Route::delete('/places/{id}', [PlaceController::class, 'destroy']);
-/*
-|--------------------------------------------------------------------------
-| Public Routes
-|--------------------------------------------------------------------------
-*/
+
 
 
 
@@ -48,12 +44,23 @@ Route::post('/admin/register', [AuthController::class, 'admin_register'])->middl
 Route::post('/login', [AuthController::class, 'login']);
 Route::post('/password/forgot', [AuthController::class, 'forgotPassword']);
 
+
 /*
 |--------------------------------------------------------------------------
 | Routes Requiring Authentication via Sanctum
 |--------------------------------------------------------------------------
 */
+
 Route::middleware('auth:sanctum')->group(function () {
+
+    // ------------------------------
+    // Public Endpoints
+    // ------------------------------
+    Route::prefix('users')->group(function () {
+
+        Route::put('profile/update', [UserController::class, 'update_profile']);
+    
+});
 
     // ------------------------------
     // Client Endpoints
@@ -62,8 +69,6 @@ Route::middleware('auth:sanctum')->group(function () {
         // Use API Resource for Reservations (CRUD)
         Route::apiResource('reservations', ReservationController::class);
         
-        // Profile update (expects standard update method in UserController)
-        Route::put('profile', [UserController::class, 'update']);
         
         // Reviews (if you have a separate ReviewController, use it; otherwise, if reviews are part of places, adjust accordingly)
         Route::apiResource('reviews', ReviewController::class);
@@ -115,24 +120,27 @@ Route::middleware('auth:sanctum')->group(function () {
     // ------------------------------
     // Admin Endpoints
     // ------------------------------
-    Route::prefix('admin')->group(function () {
-        // Manage Users (listing, enabling/disabling, deleting)
-        Route::apiResource('users', UserController::class)->only(['index', 'update', 'destroy']);
-
-        // Manage Managers (listing, enabling/disabling, deleting)
-
-        
-        // Manage Places (restaurants/cafés)
-        Route::apiResource('places', PlaceController::class)->only(['index', 'update', 'destroy']);
-        
-        // View logs and global statistics
-        Route::get('logs', [NotificationController::class, 'logs']);
-        Route::get('statistics', [StatisticsController::class, 'global']);
-        
-        // Manage notifications
-        Route::apiResource('notifications', NotificationController::class)->only(['store']);
-        
-        // Admin settings (language, theme)
-        Route::put('settings', [UserController::class, 'updateSettings']);
+    Route::middleware('role:admin')->group(function(){
+        Route::prefix('admin')->group(function () {
+            // Manage Users (listing, enabling/disabling, deleting)
+            Route::apiResource('users', UserController::class)->only(['index', 'update', 'destroy', 'show']);
+    
+            // Manage Managers (listing, enabling/disabling, deleting)
+    
+            
+            // Manage Places (restaurants/cafés)
+            Route::apiResource('places', PlaceController::class)->only(['index', 'update', 'destroy']);
+            
+            // View logs and global statistics
+            Route::get('logs', [NotificationController::class, 'logs']);
+            Route::get('statistics', [StatisticsController::class, 'global']);
+            
+            // Manage notifications
+            Route::apiResource('notifications', NotificationController::class)->only(['store']);
+            
+            // Admin settings (language, theme)
+            Route::put('settings', [UserController::class, 'updateSettings']);
+        });
     });
+
 });
