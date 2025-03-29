@@ -6,16 +6,16 @@ use App\Http\Requests\LoginRequest;
 use App\Http\Requests\ManagerLoginRequest;
 use App\Http\Requests\RegisterRequest;
 use App\Http\Requests\StorePlaceRequest;
-use Illuminate\Support\Str;
+use App\Http\Resources\PlaceResource;
+use App\Helpers\StorageHelper;
 use App\Http\Resources\UserResource;
 use App\Models\Employee;
 use App\Models\Place;
 use App\Models\User;
-use App\Models\Verification_code;
+use Exception;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
-
-
+use Illuminate\Support\Facades\Log;
 
 class AuthController extends Controller
 {
@@ -35,119 +35,126 @@ class AuthController extends Controller
         ], 200,);
     }
 
+    protected function createUser(RegisterRequest $request)
+    {
+
+        return User::createWithTranslations([
+            'first_name' => $request->validated('first_name'),
+            'last_name' => $request->validated('last_name'),
+            'phone_number' => $request->validated('phone_number'),
+            'password' => Hash::make($request->validated('password')),
+            'photo_path' => StorageHelper::storeFile($request->file('photo'), 'users_photos'),
+            'preferences' => $request->validated('preferences', ['language' => 'en']),
+            'is_active' => true,
+        ], [
+            'first_name_ar' => $request->validated('first_name_ar'),
+            'last_name_ar' => $request->validated('last_name_ar')
+        ]);
+    }
+
     public function client_register(RegisterRequest $request)
     {
-        $validated = $request->validated();
-        $user = User::create([
-            'first_name' => $validated['first_name'],
-            'last_name' => $validated['last_name'],
-            'phone_number' => $validated['phone_number'],
-            'password' => Hash::make($validated['password']),
-            'photo_path' => $request->hasFile('photo')
-                ? $request->file('photo')->store('clients_photos', 'public')
-                : null,
-            'preferences' => $validated['preferences'] ?? null,
-            'is_active' => true,
-        ]);
-        $user->client()->create(['user_id' => $user->id]);
-        $token = $user->createToken('auth-token', [$user->role])->plainTextToken;
-        return response()->json([
-            'message' => 'Registration successful',
-            'token' => $token,
-            'user' => new UserResource($user),
-        ], 200);
+        DB::beginTransaction();
+        try {
+
+            $user = $this->createUser($request);
+
+            $user->client()->create(['user_id' => $user->id]);
+
+            DB::commit();
+
+            return response()->json([
+                'message' => __('Registration successful'),
+                'token' => $user->createToken('auth-token', [$user->role])->plainTextToken,
+                'user' => new UserResource($user)
+            ], 201);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error('Client registration failed: ' . $e->getMessage());
+            return response()->json([
+                'message' => __('Registration failed'),
+                'error' => config('app.debug') ? $e->getMessage() : null
+            ], 500);
+        }
     }
 
     public function manager_register(RegisterRequest $userRequest, StorePlaceRequest $placeRequest)
     {
         DB::beginTransaction();
         try {
-            $userData = $userRequest->validated();
-            $placeData = $placeRequest->validated();
-
-            $place = Place::create([
-                'name' => $placeData['place_name'],
-                'address' => $placeData['address'],
-                'phone_number' => $placeData['place_phone_number'],
-                'latitude' => $placeData['latitude'],
-                'longitude' => $placeData['longitude'],
-                'type' => $placeData['type'],
-                'reservation_duration' => $placeData['reservation_duration'] ?? 3,
-                'description' => $placeData['description'] ?? null,
-                'photo_path' => $placeRequest->hasFile('place_photo')
-                    ? $placeRequest->file('place_photo')->store('places_photos', 'public')
-                    : null,
-                'is_active' => false,
+            // 1. Create Place with translations
+            $place = Place::createWithTranslations([
+                'name' => $placeRequest->validated('place_name'),
+                'phone_number' => $placeRequest->validated('place_phone_number'),
+                'address' => $placeRequest->validated('place_address'),
+                'description' => $placeRequest->validated('place_description'),
+                'type' => $placeRequest->validated('place_type'),
+                'location' => [ // This will trigger your setLocationAttribute mutator
+                    'longitude' => $placeRequest->validated('place_longitude'),
+                    'latitude' => $placeRequest->validated('place_latitude')
+                ],
+                'reservation_duration' => $placeRequest->validated('place_reservation_duration', 3),
+                'photo_path' => StorageHelper::storeFile($placeRequest->file('place_photo'), 'places_photos'),
+                'is_active' => false
+            ], [
+                'name_ar' => $placeRequest->validated('place_name_ar'),
+                'address_ar' => $placeRequest->validated('place_address_ar'),
+                'description_ar' => $placeRequest->validated('place_description_ar')
             ]);
 
-            $user = User::create([
-                'first_name' => $userData['first_name'],
-                'last_name' => $userData['last_name'],
-                'phone_number' => $userData['phone_number'],
-                'password' => Hash::make($userData['password']),
-                'photo_path' => $userRequest->hasFile('photo')
-                    ? $userRequest->file('photo')->store('clients_photos', 'public')
-                    : null,
-                'preferences' => $userData['preferences'] ?? null,
-                'is_active' => false,
-            ]);
+            // 2. Create User with translations
+            $user = $this->createUser($userRequest);
 
-            $verificationCode = Verification_code::create([
-                'user_id' => $user->id,
-                'code' => Str::random(50),
-                'code_type' => 'manager_registration',
-                'expires_at' => now()->addHours(24),
-                'is_verified' => false
+            // 3. Generate Verification Code
+            $verificationCode = $user->generateVerificationCode('manager_registration');
 
-            ]);
-
-            DB::commit();
-
+            // 4. Create Manager Relationship
             $user->manager()->create([
-                'user_id' => $user->id,
                 'place_id' => $place->id,
                 'is_verified' => false
             ]);
 
-            $token=$user->createToken('manager_first_login_only',[$user->role])->plainTextToken;
+            DB::commit();
 
             return response()->json([
-                'message' => 'Registration completed. Please verify your account by logging in.',
-                'manager_first_login_only'=>$token,
-                'place' => $place,
-                'user' => new UserResource($user),
-                'verification_code' => $verificationCode
-            ], 200);
-        }
-        
-        catch (\Exception $e) {
+                'message' => __('Manager registration successful. Verification required.'),
+                'verification_code' => $verificationCode->code,
+                'manager' => new UserResource($user),
+                'place' => new PlaceResource($place, $user->preferences['language'] ?? 'en'), // Pass language here
+                'access_token' => $user->createToken('manager_temp_access', [$user->role])->plainTextToken
+            ], 201);
+        } catch (\Exception $e) {
             DB::rollBack();
-
-            return response()->json(['error' =>  $e->getMessage()], 500);
+            Log::error('Manager registration failed: ' . $e->getMessage());
+            return response()->json([
+                'message' => __('Registration failed'),
+                'error' => config('app.debug') ? $e->getMessage() : null
+            ], 500);
         }
     }
 
+
     public function admin_register(RegisterRequest $request)
     {
-        $validated = $request->validated();
-        $user = User::create([
-            'first_name' => $validated['first_name'],
-            'last_name' => $validated['last_name'],
-            'phone_number' => $validated['phone_number'],
-            'password' => Hash::make($validated['password']),
-            'photo_path' => $request->hasFile('photo')
-                ? $request->file('photo')->store('clients_photos', 'public')
-                : null,
-            'preferences' => $validated['preferences'] ?? null,
-            'is_active' => true,
-        ]);
-        $user->admin()->create(['user_id' => $user->id]);
-        $token = $user->createToken('auth-token', [$user->role])->plainTextToken;
-        return response()->json([
-            'message' => 'Registration successful',
-            'token' => $token,
-            'user' => new UserResource($user),
-        ], 200);
+        DB::beginTransaction();
+        try {
+            $user = $this->createUser($request);
+            DB::commit();
+            $user->admin()->create(['user_id' => $user->id]);
+            $token = $user->createToken('auth-token', [$user->role])->plainTextToken;
+            return response()->json([
+                'message' => 'Registration successful',
+                'token' => $token,
+                'user' => new UserResource($user),
+            ], 201);
+        } catch (Exception $e) {
+            DB::rollBack();
+            Log::error('Manager registration failed: ' . $e->getMessage());
+            return response()->json([
+                'message' => __('Registration failed'),
+                'error' => config('app.debug') ? $e->getMessage() : null
+            ], 500);
+        }
     }
 
     public function manager_login(ManagerLoginRequest $request)
@@ -162,21 +169,18 @@ class AuthController extends Controller
         if (!auth()->attempt($credentials)) {
             return response()->json(['message' => 'Wrong credentials'], 401);
         }
-        
+
         $user = auth()->user();
-        $verificationCode=$user->verificationCodes()->where('code', $request->validated('verification_code'))
-            ->where('expires_at', '>', now())
-            ->where('is_verified', false)
-            ->first();
-        if(!$verificationCode){
+        $verificationCode = $user->latestVerificationCode('manager_registration');
+        if (!$verificationCode) {
             return response()->json([
-                'message'=>'wrong or expired verification code!'
+                'message' => 'wrong or expired verification code!'
             ], 401);
         }
         $verificationCode->update([
-            'is_verified'=>true
+            'is_verified' => true
         ]);
-        $user->manager()->update(['is_verified'=>true]);
+        $user->manager()->update(['is_verified' => true]);
         $user->tokens()->delete();
         $token = $user->createToken('auth-token', [$user->role])->plainTextToken;
         return response()->json([
@@ -186,38 +190,33 @@ class AuthController extends Controller
         ], 200,);
     }
 
-    public function employee_register(RegisterRequest $request){
-        $this->authorize('create',Employee::class);
-        $validated=$request->validated();
-        $user = User::create([
-            'first_name' => $validated['first_name'],
-            'last_name' => $validated['last_name'],
-            'phone_number' => $validated['phone_number'],
-            'password' => Hash::make($validated['password']),
-            'photo_path' => $request->hasFile('photo')
-                ? $request->file('photo')->store('clients_photos', 'public')
-                : null,
-            'preferences' => $validated['preferences'] ?? null,
-            'is_active' => true,
-        ]);
-        $manager = auth()->user()->load('manager.place')->manager;
-        $emp=$user->employee()->create([
-            'user_id'=>$user->id,
-            'place_id'=>$manager->place->id
-        ]);
-        $token=$user->createToken('auth-token',[$user->role])->plainTextToken;
-        $authUser=auth()->user();
-        $user->logs()->create([
-            'user_id'=>$authUser->id,
-            'user_role'=>$authUser->role,
-            'action_type'=>'registring an employee',
-            'object_type'=>'Employee',
-            'object_id'=>$emp->id
-        ]);
-        return response()->json([
-            'messgae'=>'created successfuly',
-            'token'=>$token,
-            'user'=>new UserResource($user)
-        ], 200);
+    public function employee_register(RegisterRequest $request)
+    {
+        DB::beginTransaction();
+        try {
+            $this->authorize('create', Employee::class);
+            $user = $this->createUser($request);
+            DB::commit();
+            $authUser = auth()->user();
+            $manager = $authUser->load('manager.place')->manager;
+            $emp = $user->employee()->create([
+                'user_id' => $user->id,
+                'place_id' => $manager->place->id
+            ]);
+            $token = $user->createToken('auth-token', [$user->role])->plainTextToken;
+            $authUser->logAction('registring an employee', 'Employee', $emp->id);
+            return response()->json([
+                'messgae' => 'created successfuly',
+                'token' => $token,
+                'user' => new UserResource($user)
+            ], 200);
+        } catch (Exception $e) {
+            DB::rollBack();
+            Log::error('Manager registration failed: ' . $e->getMessage());
+            return response()->json([
+                'message' => __('Registration failed'),
+                'error' => config('app.debug') ? $e->getMessage() : null
+            ], 500);
+        }
     }
 }

@@ -18,7 +18,7 @@ class SuperAdminSeeder extends Seeder
         $super_admin = User::create([
             'first_name' => 'Super',
             'last_name' => 'Admin',
-            'phone_number' => '0912345678',
+            'phone_number' => '+963912345678',
             'password' => Hash::make('super123456789'),
             'is_active'=>true
         ]);

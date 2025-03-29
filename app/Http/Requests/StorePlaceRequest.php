@@ -3,34 +3,46 @@
 namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Propaganistas\LaravelPhone\Rules\Phone;
 
 class StorePlaceRequest extends FormRequest
 {
-    /**
-     * Determine if the user is authorized to make this request.
-     */
-    public function authorize(): bool
-    {
-        return true;
-    }
-
-    /**
-     * Get the validation rules that apply to the request.
-     *
-     * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array<mixed>|string>
-     */
-    public function rules(): array
+    public function rules()
     {
         return [
             'place_name' => 'required|string|max:255',
-            'address' => 'required|string|max:500',
-            'place_phone_number' => 'nullable|string|unique:places,phone_number|size:10',
-            'latitude' => 'required|numeric|between:-90,90',
-            'longitude' => 'required|numeric|between:-180,180',
-            'type' => 'required|in:restaurant,cafe',
-            'reservation_duration' => 'required|integer|min:1|max:10',
-            'description' => 'nullable|string|max:2000',
-            'place_photo' => 'nullable|image|mimes:jpg,jpeg,png,gif|max:2048', // Max size 2MB
+            'place_name_ar' => 'required|string|max:255',
+            'place_address' => 'required|string|max:255',
+            'place_address_ar' => 'required|string|max:255',
+            'place_phone_number' => [
+                'nullable',
+                new Phone(['SY']),
+                'phone:mobile'
+            ],
+            'place_latitude' => [
+                'required',
+                'numeric',
+                'between:-90,90',
+                function ($attribute, $value, $fail) {
+                    if ($value == 0 && request('place_longitude') == 0) {
+                        $fail('The default (0,0) location is not allowed.');
+                    }
+                }
+            ],
+            'place_longitude' => 'required|numeric|between:-180,180',
+            'place_type' => 'required|in:restaurant,cafe',
+            'place_reservation_duration' => 'sometimes|integer|min:1|max:24',
+            'place_description' => 'nullable|string',
+            'place_description_ar' => 'nullable|string',
+            'place_photo' => 'nullable|image|max:2048'
+        ];
+    }
+
+    public function messages()
+    {
+        return [
+            'latitude.between' => 'Latitude must be between -90 and 90 degrees',
+            'longitude.between' => 'Longitude must be between -180 and 180 degrees',
         ];
     }
 }

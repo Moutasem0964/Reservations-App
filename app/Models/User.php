@@ -4,7 +4,10 @@ namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 
-use App\Models\Traits\HasTranslations;
+use App\Traits\HasTranslations;
+use App\Traits\HasAnalytics;
+use App\Traits\HasLogs;
+use App\Traits\HasVerificationCodes;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
@@ -13,7 +16,7 @@ use Laravel\Sanctum\HasApiTokens;
 
 class User extends Authenticatable
 {
-    use HasApiTokens, HasFactory, Notifiable, SoftDeletes, HasTranslations;
+    use HasApiTokens, HasFactory, Notifiable, SoftDeletes, HasTranslations, HasAnalytics, HasLogs, HasVerificationCodes;
 
     /**
      * The attributes that are mass assignable.
@@ -48,36 +51,40 @@ class User extends Authenticatable
     protected $casts = [
         'email_verified_at' => 'datetime',
         'password' => 'hashed',
+        'preferences' => 'array',
+
     ];
-    
-    public function manager(){
+
+    public function manager()
+    {
         return $this->hasOne(Manager::class);
     }
 
-    public function employee(){
+    public function employee()
+    {
         return $this->hasOne(Employee::class);
     }
 
-    public function client(){
+    public function client()
+    {
         return $this->hasOne(Client::class);
     }
 
-    public function admin(){
+    public function admin()
+    {
         return $this->hasOne(Admin::class);
     }
 
-    public function getRoleAttribute(){
+    public function getRoleAttribute()
+    {
         if ($this->client) {
             return 'client';
-        } 
-        elseif ($this->manager) {
+        } elseif ($this->manager) {
             return 'manager';
-        } 
-        elseif ($this->employee) {
+        } elseif ($this->employee) {
             return 'employee';
-        } 
-        elseif ($this->admin) {
-            if($this->admin->is_super){
+        } elseif ($this->admin) {
+            if ($this->admin->is_super) {
                 return 'super_admin';
             }
             return 'admin';
@@ -91,7 +98,8 @@ class User extends Authenticatable
         return $this->hasMany(Verification_code::class);
     }
 
-    public function reservations(){
+    public function reservations()
+    {
         return $this->hasMany(Reservation::class);
     }
 
@@ -100,17 +108,22 @@ class User extends Authenticatable
         return $this->hasMany(Notification::class);
     }
 
-    public function logs(){
-        return $this->hasMany(Log::class);
+    public function setPhoneNumberAttribute($value)
+    {
+        $this->attributes['phone_number'] = phone($value, 'SY')->formatE164();
     }
 
-    // public function translations()
-    // {
-    //     return $this->morphMany(Translation::class, 'translatable');
+    // public function logs(){
+    //     return $this->hasMany(Log::class);
     // }
 
-    public function analytics()
-    {
-        return $this->hasMany(Analytics::class);
-    }
+    // // public function translations()
+    // // {
+    // //     return $this->morphMany(Translation::class, 'translatable');
+    // // }
+
+    // public function analytics()
+    // {
+    //     return $this->hasMany(Analytics::class);
+    // }
 }
