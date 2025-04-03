@@ -62,4 +62,9 @@ class UserPolicy
     {
         //
     }
+
+    public function user_activation_toggle(User $admin, User $user): bool
+    {
+        return $admin->id !== $user->id && $admin->is_active;
+    }
 }
