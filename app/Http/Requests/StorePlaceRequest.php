@@ -34,7 +34,9 @@ class StorePlaceRequest extends FormRequest
             'place_reservation_duration' => 'sometimes|integer|min:1|max:24',
             'place_description' => 'nullable|string',
             'place_description_ar' => 'nullable|string',
-            'place_photo' => 'nullable|image|max:2048'
+            'place_photo' => 'nullable|image|max:2048',
+            'categories' => 'required|array', // Ensure 'categories' is an array
+            'categories.*' => 'integer|exists:categories,id', // Each item must be a valid ID from the categories table
         ];
     }
 

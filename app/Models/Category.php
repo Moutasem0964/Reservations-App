@@ -12,6 +12,8 @@ class Category extends Model
 {
     use HasFactory, HasTranslations, HasLogs, HasAnalytics;
 
+    protected $fillable=['name'];
+
     public function places(){
         return $this->belongsToMany(Place::class,'place_categories');
     }

@@ -101,7 +101,7 @@ class AuthController extends Controller
                 'address_ar' => $placeRequest->validated('place_address_ar'),
                 'description_ar' => $placeRequest->validated('place_description_ar')
             ]);
-
+            $place->categories()->attach($placeRequest->validated('categories'));
             // 2. Create User with translations
             $user = $this->createUser($userRequest);
 
@@ -119,7 +119,7 @@ class AuthController extends Controller
             return response()->json([
                 'message' => __('Manager registration successful. Verification required.'),
                 'verification_code' => $verificationCode->code,
-                'manager' => new UserResource($user),
+                'manager' => new UserResource($user,$user->preferences['language'] ?? 'en'),
                 'place' => new PlaceResource($place, $user->preferences['language'] ?? 'en'), // Pass language here
                 'access_token' => $user->createToken('manager_temp_access', [$user->role])->plainTextToken
             ], 201);

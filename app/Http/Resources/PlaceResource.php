@@ -31,6 +31,12 @@ class PlaceResource extends JsonResource
             'type' => $this->getTranslation('type', $this->language),
             'reservation_duration' => $this->reservation_duration,
             'description' => $this->getTranslation('description', $this->language),
+            'categories' => $this->categories->map(function ($category) {
+                return [
+                    'id' => $category->id,
+                    'name' => $category->getTranslation('name', $this->language),
+                ];
+            }),
             'photo_path' => $this->photo_path,
             'is_active' => $this->is_active,
             'created_at' => $this->created_at,

@@ -12,15 +12,19 @@ class UserResource extends JsonResource
      *
      * @return array<string, mixed>
      */
+
+    // public function __construct($resource, protected string $language = 'en')
+    // {
+    //     parent::__construct($resource);
+    // }
     public function toArray(Request $request): array
     {
         $language = $this->preferences['language'] ?? 'en';
 
-
         return [
             'id' => $this->id,
-            'first_name' => $this->getTranslation('first_name',$language),
-            'last_name' => $this->getTranslation('last_name',$language),
+            'first_name' => $this->getTranslation('first_name', $language),
+            'last_name' => $this->getTranslation('last_name', $language),
             'phone_number' => $this->phone_number,
             'photo' => $this->photo_path,
             'preferences' => $this->preferences,
