@@ -13,14 +13,14 @@ return new class extends Migration
     {
         Schema::create('reviews', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('client_id')->constrained('clients')->cascadeOnDelete();
+            $table->foreignId('user_id')->constrained('users')->cascadeOnDelete();
             $table->foreignId('place_id')->constrained('places')->cascadeOnDelete();
             $table->integer('rating');
             $table->text('comment');
             $table->timestamps();
-            $table->index('client_id');
+            $table->index('user_id');
             $table->index('place_id');
-            $table->unique(['place_id','client_id']);
+            $table->unique(['place_id','user_id']);
         });
     }
 

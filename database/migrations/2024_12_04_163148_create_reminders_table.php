@@ -13,14 +13,14 @@ return new class extends Migration
     {
         Schema::create('reminders', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('client_id')->constrained('clients')->cascadeOnDelete();
+            $table->foreignId('user_id')->constrained('users')->cascadeOnDelete();
             $table->foreignId('reservation_id')->constrained('reservations')->cascadeOnDelete();
             $table->timestamp('reminder_time');
             $table->text('message');
             $table->boolean('is_custom')->default(false);
             $table->enum('status', ['pending', 'sent', 'failed'])->default('pending');
             $table->index('reminder_time');
-            $table->index(['client_id','reservation_id']);
+            $table->index(['user_id','reservation_id']);
             $table->timestamps();
         });
     }
