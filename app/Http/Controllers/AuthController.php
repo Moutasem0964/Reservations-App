@@ -102,6 +102,7 @@ class AuthController extends Controller
                 'description_ar' => $placeRequest->validated('place_description_ar')
             ]);
             $place->categories()->attach($placeRequest->validated('categories'));
+            $place->res_types()->attach($placeRequest->validated('res_types'));
             // 2. Create User with translations
             $user = $this->createUser($userRequest);
 

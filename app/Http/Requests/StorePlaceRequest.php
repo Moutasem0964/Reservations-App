@@ -37,6 +37,8 @@ class StorePlaceRequest extends FormRequest
             'place_photo' => 'nullable|image|max:2048',
             'categories' => 'required|array', // Ensure 'categories' is an array
             'categories.*' => 'integer|exists:categories,id', // Each item must be a valid ID from the categories table
+            'res_types'=>'required|array',
+            'res_types.*'=>'integer|exists:res_types,id'
         ];
     }
 
