@@ -2,38 +2,76 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Requests\LoginRequest;
-use App\Http\Requests\ManagerLoginRequest;
 use App\Http\Requests\RegisterRequest;
 use App\Http\Requests\StorePlaceRequest;
 use App\Http\Resources\PlaceResource;
 use App\Helpers\StorageHelper;
+use App\Http\Requests\LoginRequest;
+use App\Http\Requests\PasswordResetRequest;
+use App\Http\Requests\VerifyRequest;
 use App\Http\Resources\UserResource;
 use App\Models\Employee;
 use App\Models\Place;
 use App\Models\User;
+use App\Services\SmsService;
 use Exception;
+use Illuminate\Auth\Events\PasswordReset;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Password;
 
 class AuthController extends Controller
 {
 
+    protected $smsService;
+
+    public function __construct(SmsService $smsService)
+    {
+        $this->smsService = $smsService;
+    }
+
     public function login(LoginRequest $request)
     {
-        if (!auth()->attempt($request->validated())) {
+        // Get the validated data explicitly
+        $validatedData = $request->validated();
+
+        // Retrieve the user by phone number
+        $user = User::where('phone_number', $validatedData['phone_number'])->firstOrFail();
+
+        // Check if the user is authorized to login
+        if (!Gate::forUser($user)->allows('login', $user)) {
+            return response()->json(['message' => 'Unauthorized'], 403);
+        }
+
+        // Attempt login with phone number and password
+        if (!auth()->attempt([
+            'phone_number' => $validatedData['phone_number'],
+            'password' => $validatedData['password']
+        ])) {
             return response()->json(['message' => 'Wrong credentials'], 401);
         }
-        $user = auth()->user();
+
+        // Delete previous tokens
         $user->tokens()->delete();
+
+        // Log user role for debugging purposes
+        Log::info('User role', ['role' => $user->role]);
+
+        // Create a new token for the user
         $token = $user->createToken('auth-token', [$user->role])->plainTextToken;
+
+        // Return response with token and user data
         return response()->json([
             'message' => 'You are logged in',
             'token' => $token,
             'user' => new UserResource($user)
-        ], 200,);
+        ], 200);
     }
+
 
     protected function createUser(RegisterRequest $request)
     {
@@ -45,7 +83,7 @@ class AuthController extends Controller
             'password' => Hash::make($request->validated('password')),
             'photo_path' => StorageHelper::storeFile($request->file('photo'), 'users_photos'),
             'preferences' => $request->validated('preferences', ['language' => 'en']),
-            'is_active' => true,
+            'is_active' => false,
         ], [
             'first_name_ar' => $request->validated('first_name_ar'),
             'last_name_ar' => $request->validated('last_name_ar')
@@ -61,11 +99,13 @@ class AuthController extends Controller
 
             $user->client()->create(['user_id' => $user->id]);
 
+            $verificationCode = $user->generateVerificationCode('client_registration');
+
+            $this->smsService->send($user->phone_number, $verificationCode);
             DB::commit();
 
             return response()->json([
                 'message' => __('Registration successful'),
-                'token' => $user->createToken('auth-token', [$user->role])->plainTextToken,
                 'user' => new UserResource($user)
             ], 201);
         } catch (\Exception $e) {
@@ -89,7 +129,7 @@ class AuthController extends Controller
                 'address' => $placeRequest->validated('place_address'),
                 'description' => $placeRequest->validated('place_description'),
                 'type' => $placeRequest->validated('place_type'),
-                'location' => [ // This will trigger your setLocationAttribute mutator
+                'location' => [ // This will trigger your setLocationAttribute mutator in the Place model
                     'longitude' => $placeRequest->validated('place_longitude'),
                     'latitude' => $placeRequest->validated('place_latitude')
                 ],
@@ -99,30 +139,30 @@ class AuthController extends Controller
             ], [
                 'name_ar' => $placeRequest->validated('place_name_ar'),
                 'address_ar' => $placeRequest->validated('place_address_ar'),
+                'type_ar' => $placeRequest->validated('type_ar'),
                 'description_ar' => $placeRequest->validated('place_description_ar')
             ]);
+
             $place->categories()->attach($placeRequest->validated('categories'));
             $place->res_types()->attach($placeRequest->validated('res_types'));
+
             // 2. Create User with translations
             $user = $this->createUser($userRequest);
 
             // 3. Generate Verification Code
             $verificationCode = $user->generateVerificationCode('manager_registration');
-
+            $this->smsService->send($user->phone_number, $verificationCode);
             // 4. Create Manager Relationship
             $user->manager()->create([
                 'place_id' => $place->id,
-                'is_verified' => false
             ]);
 
             DB::commit();
 
             return response()->json([
-                'message' => __('Manager registration successful. Verification required.'),
-                'verification_code' => $verificationCode->code,
-                'manager' => new UserResource($user,$user->preferences['language'] ?? 'en'),
+                'message' => __('Manager registration successful. Verification code sent. Verification required.'),
+                'manager' => new UserResource($user, $user->preferences['language'] ?? 'en'),
                 'place' => new PlaceResource($place, $user->preferences['language'] ?? 'en'), // Pass language here
-                'access_token' => $user->createToken('manager_temp_access', [$user->role])->plainTextToken
             ], 201);
         } catch (\Exception $e) {
             DB::rollBack();
@@ -140,12 +180,12 @@ class AuthController extends Controller
         DB::beginTransaction();
         try {
             $user = $this->createUser($request);
-            DB::commit();
             $user->admin()->create(['user_id' => $user->id]);
-            $token = $user->createToken('auth-token', [$user->role])->plainTextToken;
+            $verificationCode = $user->generateVerificationCode('admin_registration');
+            $this->smsService->send($user->phone_number, $verificationCode);
+            DB::commit();
             return response()->json([
                 'message' => 'Registration successful',
-                'token' => $token,
                 'user' => new UserResource($user),
             ], 201);
         } catch (Exception $e) {
@@ -158,59 +198,26 @@ class AuthController extends Controller
         }
     }
 
-    public function manager_login(ManagerLoginRequest $request)
-    {
-
-        $validated = $request->validated();
-        $credentials = [
-            'phone_number' => $validated['phone_number'],
-            'password' => $validated['password']
-        ];
-
-        if (!auth()->attempt($credentials)) {
-            return response()->json(['message' => 'Wrong credentials'], 401);
-        }
-
-        $user = auth()->user();
-        $verificationCode = $user->latestVerificationCode('manager_registration');
-        if (!$verificationCode) {
-            return response()->json([
-                'message' => 'wrong or expired verification code!'
-            ], 401);
-        }
-        $verificationCode->update([
-            'is_verified' => true
-        ]);
-        $user->manager()->update(['is_verified' => true]);
-        $user->tokens()->delete();
-        $token = $user->createToken('auth-token', [$user->role])->plainTextToken;
-        return response()->json([
-            'message' => 'You are logged in',
-            'token' => $token,
-            'user' => new UserResource($user)
-        ], 200,);
-    }
-
     public function employee_register(RegisterRequest $request)
     {
         DB::beginTransaction();
         try {
             $this->authorize('create', Employee::class);
             $user = $this->createUser($request);
-            DB::commit();
+            $verificationCode = $user->generateVerificationCode('employee_registration');
+            $this->smsService->send($user->phone_number, $verificationCode);
             $authUser = auth()->user();
             $manager = $authUser->load('manager.place')->manager;
             $emp = $user->employee()->create([
                 'user_id' => $user->id,
                 'place_id' => $manager->place->id
             ]);
-            $token = $user->createToken('auth-token', [$user->role])->plainTextToken;
             $authUser->logAction('registring an employee', 'Employee', $emp->id);
+            DB::commit();
             return response()->json([
                 'messgae' => 'created successfuly',
-                'token' => $token,
                 'user' => new UserResource($user)
-            ], 200);
+            ], 201);
         } catch (Exception $e) {
             DB::rollBack();
             Log::error('Manager registration failed: ' . $e->getMessage());
@@ -219,5 +226,98 @@ class AuthController extends Controller
                 'error' => config('app.debug') ? $e->getMessage() : null
             ], 500);
         }
+    }
+
+    public function verify(VerifyRequest $request)
+    {
+        $user = User::where('phone_number', $request->phone_number)->first();
+
+        if (!$user) {
+            return response()->json(['message' => 'User not found'], 404);
+        }
+
+        $verificationCode = $user->verifyCode($request->verification_code);
+
+        if (!$verificationCode) {
+            return response()->json(['message' => 'Invalid or expired verification code'], 400);
+        }
+
+        $verificationCode->update(['is_verified' => true]);
+        $user->handlePostVerification($verificationCode->code_type);
+
+        if ($verificationCode->code_type === 'password_reset') {
+
+            return response()->json([
+                'message' => 'Verification successful!',
+                'reset_token' => '$token',
+                'expires_at' => now()->addMinutes(config('auth.passwords.users.expire', 60))
+            ], 200);
+        }
+
+        return response()->json(['message' => 'Verification successful. Please Login!'], 200);
+    }
+
+    public function forgot_password(Request $request)
+    {
+        $validatedData = $request->validate([
+            'phone_number' => 'required|string|exists:users,phone_number'
+        ], [
+            'phone_number.exists' => 'The provided phone number is not registered.'
+        ]);
+
+        try {
+            $user = User::where('phone_number', $validatedData['phone_number'])->firstOrFail();
+            DB::beginTransaction();
+            $verificationCode = $user->latestVerificationCode('password_reset');
+            if (!$verificationCode) {
+                $verificationCode = $user->generateVerificationCode('password_reset', 1);
+                $this->smsService->send($user->phone_number, "Your password reset Code: {$verificationCode}");
+            }
+            DB::commit();
+            return response()->json([
+                'message' => 'Verification Code has been sent to your phone number. Please verify !',
+                'expires_in' => now()->diffInMinutes($verificationCode->expires_at)
+            ], 200);
+        } catch (Exception $e) {
+            DB::rollBack();
+            Log::error('Password reset failed', [
+                'phone' => $validatedData['phone_number'],
+                'error' => $e->getMessage()
+            ]);
+
+            return response()->json([
+                'message' => 'Could not process password reset'
+            ], 500);
+        }
+    }
+
+    public function reset_password(PasswordResetRequest $request)
+    {
+        // $response = Password::broker()->reset(
+        //     $request->only('phone_number', 'password', 'password_confirmation', 'token'),
+        //     function ($user, $password) {
+        //         DB::transaction(function () use ($user, $password) {
+        //             $user->forceFill([
+        //                 'password' => Hash::make($password)
+        //             ])->save();
+
+        //             $user->tokens()->delete();
+        //             event(new PasswordReset($user));
+
+        //             // Cleanup verification codes
+        //             $user->verificationCodes()
+        //                 ->where('code_type', 'password_reset')
+        //                 ->delete();
+
+        //             // Clear cache
+        //             Cache::forget("verification_intent:{$user->phone_number}");
+        //             Cache::forget("vc:{$user->phone_number}:password_reset");
+        //         });
+        //     }
+        // );
+
+        // return $response === Password::PASSWORD_RESET
+        //     ? response()->json(['message' => 'Password reset successful'])
+        //     : response()->json(['message' => 'Invalid token or expired code'], 400);
     }
 }

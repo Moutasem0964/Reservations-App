@@ -13,6 +13,10 @@ use App\Http\Controllers\SurveyController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\ReviewController;
 use App\Http\Controllers\StatisticsController;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Password;
 
 /*
 |--------------------------------------------------------------------------
@@ -25,8 +29,62 @@ use App\Http\Controllers\StatisticsController;
 |
 */
 
-Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
-    return $request->user();
+Route::get('/test-password-reset', function () {
+    try {
+        $user = App\Models\User::first();
+        if (!$user) {
+            return response()->json(['error' => 'No user found'], 404);
+        }
+
+        $broker = app('auth.password.broker');
+        
+        // Test sending reset link
+        $response = $broker->sendResetLink(['phone_number' => $user->phone_number]);
+        
+        if ($response !== \Illuminate\Support\Facades\Password::RESET_LINK_SENT) {
+            throw new \Exception("Failed to send reset link: {$response}");
+        }
+
+        // Verify token was created
+        $tokenRecord = DB::table('password_reset_tokens')
+            ->where('phone_number', $user->phone_number)
+            ->first();
+
+        if (!$tokenRecord) {
+            throw new \Exception("Token not created in database");
+        }
+
+        // Test password reset
+        $resetResponse = $broker->reset(
+            [
+                'phone_number' => $user->phone_number,
+                'token' => $tokenRecord->token,
+                'password' => 'newpassword',
+                'password_confirmation' => 'newpassword'
+            ],
+            function ($user, $password) {
+                $user->password = Hash::make($password);
+                $user->save();
+            }
+        );
+
+        if ($resetResponse !== \Illuminate\Support\Facades\Password::PASSWORD_RESET) {
+            throw new \Exception("Password reset failed: {$resetResponse}");
+        }
+
+        return response()->json([
+            'success' => true,
+            'token' => $tokenRecord->token,
+            'password_reset' => true
+        ]);
+
+    } catch (\Exception $e) {
+        return response()->json([
+            'success' => false,
+            'error' => $e->getMessage(),
+            'trace' => $e->getTraceAsString()
+        ], 500);
+    }
 });
 
 //Route::delete('/places/{id}', [PlaceController::class, 'destroy']);
@@ -42,7 +100,8 @@ Route::post('/manager/login', [AuthController::class, 'manager_login']);
 Route::post('/admin/register', [AuthController::class, 'admin_register'])->middleware(['auth:sanctum', 'role:super_admin']);
 
 Route::post('/login', [AuthController::class, 'login']);
-Route::post('/password/reset', [AuthController::class, 'forgotPassword']);
+Route::post('/verify', [AuthController::class, 'verify']);
+Route::post('/forgot/password', [AuthController::class, 'forgot_password']);
 
 
 /*
@@ -119,11 +178,12 @@ Route::middleware('auth:sanctum')->group(function () {
     // ------------------------------
     // Admin Endpoints
     // ------------------------------
-    Route::middleware('role:admin')->group(function () {
+    Route::middleware('role:admin|super_admin')->group(function () {
         Route::prefix('admin')->group(function () {
+            Route::apiResource('users', UserController::class)->only(['show', 'index']);
             // Manage Users (listing, enabling/disabling, deleting)
             //Route::apiResource('users', UserController::class)->only(['index', 'update', 'destroy', 'show']);
-            Route::put('/user/activation/{id}',[UserController::class,'user_activation_toggle']);
+            Route::put('/user/activation/{id}', [UserController::class, 'user_activation_toggle']);
             // Manage Managers (listing, enabling/disabling, deleting)
 
 

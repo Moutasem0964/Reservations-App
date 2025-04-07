@@ -32,7 +32,7 @@ class EmployeePolicy
     public function create(User $user): bool
     {
 
-        return $user->is_active && $user->manager && $user->manager->is_verified;
+        return $user->is_active && $user->manager;
     }
 
     /**

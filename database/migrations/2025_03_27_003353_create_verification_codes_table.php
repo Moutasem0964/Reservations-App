@@ -15,17 +15,16 @@ return new class extends Migration
             $table->id();
 
             // Foreign key with explicit naming
-            $table->foreignId('user_id')
-                ->constrained('users')
-                ->cascadeOnDelete()
-                ->comment('Reference to users table');
+            $table->foreignId('user_id')->constrained('users')->cascadeOnDelete();
 
-            $table->char('code', 50)->collation('utf8mb4_bin')->comment('Case-sensitive verification token');
+            $table->string('code', 8);
             $table->enum('code_type', [
                 'manager_registration',
-                'phone_verification',
+                'client_registration',
+                'employee_registration',
+                'admin_registration',
                 'password_reset'
-            ])->comment('Type of verification flow');
+            ]);
 
             $table->timestamp('expires_at')->index();
             $table->boolean('is_verified')->default(false)->index();

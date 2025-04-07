@@ -40,7 +40,7 @@ class PlaceResource extends JsonResource
             'reservations_types' => $this->res_types->map(function ($res_type) {
                 return [
                     'id' => $res_type->id,
-                    'name' => $res_type->name
+                    'name' => $res_type->getTranslation('name',$this->language)
                 ];
             }),
             'photo_path' => $this->photo_path,

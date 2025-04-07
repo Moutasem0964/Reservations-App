@@ -4,6 +4,7 @@ namespace App\Policies;
 
 use App\Models\User;
 use Illuminate\Auth\Access\Response;
+use Illuminate\Support\Facades\Log;
 
 class UserPolicy
 {
@@ -66,5 +67,10 @@ class UserPolicy
     public function user_activation_toggle(User $admin, User $user): bool
     {
         return $admin->id !== $user->id && $admin->is_active;
+    }
+
+    public function login(User $user): bool
+    {
+        return ($user && $user->is_active) ? true : false;
     }
 }

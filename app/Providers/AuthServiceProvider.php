@@ -3,6 +3,7 @@
 namespace App\Providers;
 
 // use Illuminate\Support\Facades\Gate;
+
 use Illuminate\Foundation\Support\Providers\AuthServiceProvider as ServiceProvider;
 
 use App\Models\Analytics;
@@ -13,12 +14,12 @@ use App\Models\Notification;
 use App\Models\Place;
 use App\Models\Reservation;
 use App\Models\Review;
-use App\Models\Survey;
 use App\Models\Survey_answer;
 use App\Models\Survey_question;
 use App\Models\Table;
 use App\Models\User;
 use App\Policies\AnalyticsPolicy;
+
 use App\Policies\EmployeePolicy;
 use App\Policies\FavoratePolicy;
 use App\Policies\MenuPolicy;
@@ -29,6 +30,7 @@ use App\Policies\ReviewPolicy;
 use App\Policies\SurveyPolicy;
 use App\Policies\TablePolicy;
 use App\Policies\UserPolicy;
+
 
 class AuthServiceProvider extends ServiceProvider
 {
@@ -49,14 +51,16 @@ class AuthServiceProvider extends ServiceProvider
         Survey_question::class => SurveyPolicy::class,
         Table::class => TablePolicy::class,
         User::class => UserPolicy::class,
-        Employee::class=>EmployeePolicy::class
+        Employee::class => EmployeePolicy::class,
+
     ];
 
     /**
      * Register any authentication / authorization services.
      */
-    public function boot(): void
+    public function boot()
     {
-        //
+        $this->registerPolicies();
+        
     }
 }

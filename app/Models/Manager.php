@@ -15,7 +15,6 @@ class Manager extends Model
     protected $fillable = [
         'user_id',
         'place_id',
-        'is_verified'
     ];
 
     public function user(){

@@ -49,4 +49,9 @@ class UserController extends Controller
         }
         
     }
+
+    public function show($id){
+        $user=User::findOrFail($id);
+        return response()->json(new UserResource($user), 200);
+    }
 }

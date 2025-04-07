@@ -20,13 +20,12 @@ class SuperAdminSeeder extends Seeder
             'last_name' => 'Admin',
             'phone_number' => '+963912345678',
             'password' => Hash::make('super123456789'),
-            'is_active'=>true
+            'is_active' => true
         ]);
-    
+
         Admin::create([
             'user_id' => $super_admin->id,
-            'is_super'=>true
-    ]);
-    
+            'is_super' => true
+        ]);
     }
 }

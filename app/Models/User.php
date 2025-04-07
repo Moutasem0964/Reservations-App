@@ -8,13 +8,15 @@ use App\Traits\HasTranslations;
 use App\Traits\HasAnalytics;
 use App\Traits\HasLogs;
 use App\Traits\HasVerificationCodes;
+use Illuminate\Contracts\Auth\CanResetPassword;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Facades\Log;
 use Laravel\Sanctum\HasApiTokens;
 
-class User extends Authenticatable
+class User extends Authenticatable implements CanResetPassword
 {
     use HasApiTokens, HasFactory, Notifiable, SoftDeletes, HasTranslations, HasAnalytics, HasLogs, HasVerificationCodes;
 
@@ -113,17 +115,22 @@ class User extends Authenticatable
         $this->attributes['phone_number'] = phone($value, 'SY')->formatE164();
     }
 
-    // public function logs(){
-    //     return $this->hasMany(Log::class);
-    // }
+    public function getEmailForPasswordReset()
+    {
+        Log::debug('User:getEmailForPasswordReset called, value: ' . $this->phone_number);
+        return $this->phone_number;
+    }
 
-    // // public function translations()
-    // // {
-    // //     return $this->morphMany(Translation::class, 'translatable');
-    // // }
-
-    // public function analytics()
+    // // This is critical to override
+    // public function getPhoneNumberForPasswordReset()
     // {
-    //     return $this->hasMany(Analytics::class);
+    //     return $this->phone_number;
     // }
+
+
+    public function sendPasswordResetNotification($token)
+    {
+        Log::info("Password reset token for {$this->phone_number}: $token");
+        // In production, replace this with actual SMS sending
+    }
 }
