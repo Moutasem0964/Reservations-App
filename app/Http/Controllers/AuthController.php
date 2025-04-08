@@ -58,9 +58,6 @@ class AuthController extends Controller
         // Delete previous tokens
         $user->tokens()->delete();
 
-        // Log user role for debugging purposes
-        Log::info('User role', ['role' => $user->role]);
-
         // Create a new token for the user
         $token = $user->createToken('auth-token', [$user->role])->plainTextToken;
 
@@ -245,12 +242,15 @@ class AuthController extends Controller
         $verificationCode->update(['is_verified' => true]);
         $user->handlePostVerification($verificationCode->code_type);
 
+
         if ($verificationCode->code_type === 'password_reset') {
+            // Generate reset token using Laravel's built-in broker
+            $token = Password::broker('phones')->createToken($user);
 
             return response()->json([
                 'message' => 'Verification successful!',
-                'reset_token' => '$token',
-                'expires_at' => now()->addMinutes(config('auth.passwords.users.expire', 60))
+                'reset_token' => $token,
+                'expires_at' => now()->addMinutes(config('auth.passwords.phones.expire', 60))
             ], 200);
         }
 
@@ -291,33 +291,30 @@ class AuthController extends Controller
         }
     }
 
-    public function reset_password(PasswordResetRequest $request)
+    public function reset_password(Request $request)
     {
-        // $response = Password::broker()->reset(
-        //     $request->only('phone_number', 'password', 'password_confirmation', 'token'),
-        //     function ($user, $password) {
-        //         DB::transaction(function () use ($user, $password) {
-        //             $user->forceFill([
-        //                 'password' => Hash::make($password)
-        //             ])->save();
+        $request->validate([
+            'phone_number' => 'required|exists:users,phone_number',
+            'reset_token' => 'required',
+            'password' => 'required|min:6|confirmed',
+        ]);
 
-        //             $user->tokens()->delete();
-        //             event(new PasswordReset($user));
+        // Use Laravel's built-in password reset broker for phones
+        $status = Password::broker('phones')->reset(
+            [
+                'phone_number' => $request->phone_number,
+                'password' => $request->password,
+                'token' => $request->reset_token
+            ],
+            function ($user, $password) {
+                $user->update(['password' => Hash::make($password)]);
+            }
+        );
 
-        //             // Cleanup verification codes
-        //             $user->verificationCodes()
-        //                 ->where('code_type', 'password_reset')
-        //                 ->delete();
+        if ($status === Password::PASSWORD_RESET) {
+            return response()->json(['message' => 'Password reset successful. Please login.'], 200);
+        }
 
-        //             // Clear cache
-        //             Cache::forget("verification_intent:{$user->phone_number}");
-        //             Cache::forget("vc:{$user->phone_number}:password_reset");
-        //         });
-        //     }
-        // );
-
-        // return $response === Password::PASSWORD_RESET
-        //     ? response()->json(['message' => 'Password reset successful'])
-        //     : response()->json(['message' => 'Invalid token or expired code'], 400);
+        return response()->json(['message' => 'Invalid or expired reset token'], 400);
     }
 }

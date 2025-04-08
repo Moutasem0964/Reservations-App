@@ -93,11 +93,18 @@ return [
     'passwords' => [
         'users' => [
             'provider' => 'users',
-            'table' => 'password_reset_tokens', // Must match your table name
-            'expire' => 60, // Minutes
-            'throttle' => 60, // Seconds
+            'table' => 'password_reset_tokens',
+            'expire' => 60,
+            'throttle' => 60,
+        ],
+        'phones' => [ // Custom reset broker for phone numbers
+            'provider' => 'users',
+            'table' => 'password_reset_tokens',
+            'expire' => 60,
+            'throttle' => 60,
         ],
     ],
+
 
     /*
     |--------------------------------------------------------------------------
