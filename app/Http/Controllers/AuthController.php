@@ -291,13 +291,9 @@ class AuthController extends Controller
         }
     }
 
-    public function reset_password(Request $request)
+    public function reset_password(PasswordResetRequest $request)
     {
-        $request->validate([
-            'phone_number' => 'required|exists:users,phone_number',
-            'reset_token' => 'required',
-            'password' => 'required|min:6|confirmed',
-        ]);
+        $request->validated();
 
         // Use Laravel's built-in password reset broker for phones
         $status = Password::broker('phones')->reset(

@@ -22,7 +22,7 @@ class PasswordResetRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'phone_number'=>'string}required|exists:users,phone_number',
+            'phone_number' => 'required|string|exists:users,phone_number',
             'password' => 'required|string|min:8|confirmed',
             'reset_token' => 'required|string',
         ];
