@@ -27,7 +27,7 @@ class CheckRole
         }
 
         return response()->json([
-            'message' => 'Unauthorized for any of these roles: ' . $roles
+            'message' => 'Unauthorized!! only: ' . $roles . ' is/are authorized'
         ], 403);
     }
 }

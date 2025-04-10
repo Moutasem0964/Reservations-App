@@ -9,6 +9,7 @@ use App\Http\Controllers\UserController;
 use App\Http\Controllers\TableController;
 use App\Http\Controllers\MenuController;
 use App\Http\Controllers\FeedbackController;
+use App\Http\Controllers\ManagerInvitationController;
 use App\Http\Controllers\SurveyController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\ReviewController;
@@ -46,7 +47,10 @@ Route::post('/admin/register', [AuthController::class, 'admin_register'])->middl
 Route::post('/login', [AuthController::class, 'login']);
 Route::post('/verify', [AuthController::class, 'verify']);
 Route::post('/forgot/password', [AuthController::class, 'forgot_password']);
-Route::post('/reset/password',[AuthController::class,'reset_password']);
+Route::post('/reset/password', [AuthController::class, 'reset_password']);
+Route::post('request/new/verification/code', [AuthController::class, 'request_new_verification_code']);
+Route::post('/accept/manager/invite/{token}', [ManagerInvitationController::class, 'accept_invite'])
+    ->name('accept.manager-invite');
 
 
 /*
@@ -89,6 +93,13 @@ Route::middleware('auth:sanctum')->group(function () {
         // Recommendations (for example, a GET endpoint)
         Route::get('recommendations', [SurveyController::class, 'getRecommendations']);
     });
+
+    Route::middleware('role:manager')->group(function () {
+        Route::prefix('manager')->group(function () {
+            Route::post('send/invitation', [ManagerInvitationController::class, 'send']);
+        });
+    });
+
 
     // ------------------------------
     // Representative (Manager/Employee) Endpoints

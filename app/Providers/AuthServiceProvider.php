@@ -9,6 +9,7 @@ use Illuminate\Foundation\Support\Providers\AuthServiceProvider as ServiceProvid
 use App\Models\Analytics;
 use App\Models\Employee;
 use App\Models\Favorate;
+use App\Models\ManagerInvitation;
 use App\Models\Menu;
 use App\Models\Notification;
 use App\Models\Place;
@@ -22,6 +23,7 @@ use App\Policies\AnalyticsPolicy;
 
 use App\Policies\EmployeePolicy;
 use App\Policies\FavoratePolicy;
+use App\Policies\ManagerInvitationPolicy;
 use App\Policies\MenuPolicy;
 use App\Policies\NotificationPolicy;
 use App\Policies\PlacePolicy;
@@ -52,6 +54,8 @@ class AuthServiceProvider extends ServiceProvider
         Table::class => TablePolicy::class,
         User::class => UserPolicy::class,
         Employee::class => EmployeePolicy::class,
+        ManagerInvitation::class => ManagerInvitationPolicy::class,
+
 
     ];
 

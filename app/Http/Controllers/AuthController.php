@@ -98,7 +98,7 @@ class AuthController extends Controller
 
             $verificationCode = $user->generateVerificationCode('client_registration');
 
-            $this->smsService->send($user->phone_number, $verificationCode);
+            $this->smsService->send($user->phone_number, "Your code is: {$verificationCode->code}");
             DB::commit();
 
             return response()->json([
@@ -148,7 +148,7 @@ class AuthController extends Controller
 
             // 3. Generate Verification Code
             $verificationCode = $user->generateVerificationCode('manager_registration');
-            $this->smsService->send($user->phone_number, $verificationCode);
+            $this->smsService->send($user->phone_number, "Your code is: {$verificationCode->code}");
             // 4. Create Manager Relationship
             $user->manager()->create([
                 'place_id' => $place->id,
@@ -179,10 +179,10 @@ class AuthController extends Controller
             $user = $this->createUser($request);
             $user->admin()->create(['user_id' => $user->id]);
             $verificationCode = $user->generateVerificationCode('admin_registration');
-            $this->smsService->send($user->phone_number, $verificationCode);
+            $this->smsService->send($user->phone_number, "Your code is: {$verificationCode->code}");
             DB::commit();
             return response()->json([
-                'message' => 'Registration successful',
+                'message' => 'Registration successful. Verification code sent. Verification required.',
                 'user' => new UserResource($user),
             ], 201);
         } catch (Exception $e) {
@@ -202,7 +202,7 @@ class AuthController extends Controller
             $this->authorize('create', Employee::class);
             $user = $this->createUser($request);
             $verificationCode = $user->generateVerificationCode('employee_registration');
-            $this->smsService->send($user->phone_number, $verificationCode);
+            $this->smsService->send($user->phone_number, "Your code is: {$verificationCode->code}");
             $authUser = auth()->user();
             $manager = $authUser->load('manager.place')->manager;
             $emp = $user->employee()->create([
@@ -212,7 +212,7 @@ class AuthController extends Controller
             $authUser->logAction('registring an employee', 'Employee', $emp->id);
             DB::commit();
             return response()->json([
-                'messgae' => 'created successfuly',
+                'messgae' => 'created successfuly. Verification code sent. Verification required.',
                 'user' => new UserResource($user)
             ], 201);
         } catch (Exception $e) {
@@ -271,7 +271,7 @@ class AuthController extends Controller
             $verificationCode = $user->latestVerificationCode('password_reset');
             if (!$verificationCode) {
                 $verificationCode = $user->generateVerificationCode('password_reset', 1);
-                $this->smsService->send($user->phone_number, "Your password reset Code: {$verificationCode}");
+                $this->smsService->send($user->phone_number, "Your password reset Code: {$verificationCode->code}");
             }
             DB::commit();
             return response()->json([
@@ -312,5 +312,26 @@ class AuthController extends Controller
         }
 
         return response()->json(['message' => 'Invalid or expired reset token'], 400);
+    }
+
+    public function request_new_verification_code(Request $request)
+    {
+        $validatedData = $request->validate([
+            'phone_number' => 'required|string|exists:users,phone_number'
+        ], [
+            'phone_number.exists' => 'The provided phone number is not registered.'
+        ]);
+        $user = User::where('phone_number', $validatedData['phone_number'])->firstOrFail();
+        if ($user->is_active) {
+            return response()->json(['message' => 'Account already verified'], 400);
+        }
+        $role = $user->role;
+        $codeType = $role . '_registration';
+        $user->verificationCodes()->where('code_type', $codeType)->delete();
+        $verificationCode=$user->generateVerificationCode($role . '_registration');
+        $this->smsService->send($user->phone_number, "Your new verification code is:  {$verificationCode->code}");
+        return response()->json([
+            'message' => 'a new verfication code has been sent. Please verify within ' . now()->diffInHours($verificationCode->expire_at)
+        ], 200,);
     }
 }
