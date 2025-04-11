@@ -117,20 +117,7 @@ class User extends Authenticatable implements CanResetPassword
 
     public function getEmailForPasswordReset()
     {
-        Log::debug('User:getEmailForPasswordReset called, value: ' . $this->phone_number);
         return $this->phone_number;
     }
 
-    // // This is critical to override
-    // public function getPhoneNumberForPasswordReset()
-    // {
-    //     return $this->phone_number;
-    // }
-
-
-    public function sendPasswordResetNotification($token)
-    {
-        Log::info("Password reset token for {$this->phone_number}: $token");
-        // In production, replace this with actual SMS sending
-    }
 }

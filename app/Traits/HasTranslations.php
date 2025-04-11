@@ -59,28 +59,55 @@ trait HasTranslations
         }
     }
 
-    public function getTranslation($field, $language = null)
+    public function getTranslation(string $field, string $language = 'en')
     {
-        $language = $language ?? $this->preferences['language'] ?? 'en';
-
+        // Always check both eager-loaded and direct access
         if ($language === 'ar') {
-            return $this->translations
+            if ($this->relationLoaded('translations')) {
+                return $this->translations
+                    ->where('field', $field)
+                    ->first()?->value ?? $this->$field;
+            }
+
+            return $this->translations()
                 ->where('field', $field)
-                ->first()?->value ?? $this->$field;
+                ->value('value') ?? $this->$field;
         }
 
         return $this->$field;
     }
 
-    public function getAllTranslations(): array
-    {
-        return ($this->preferences['language'] ?? 'en') === 'ar'
-            ? $this->translations->pluck('value', 'field')->toArray()
-            : [];
-    }
+    // public function getTranslationFromEagerLoaded(string $field, ?string $language = null)
+    // {
+
+    //     logger('Language check', [
+    //         'passed_language' => $language,
+    //         'object_language' => $this->language ?? 'none',
+    //         'field' => $field
+    //     ]);
+    //     $language = $language ?? $this->language ?? 'en';
+
+    //     if ($language === 'ar') {
+    //         // Check both relation existence and null translations
+    //         if ($this->relationLoaded('translations') && $this->translations) {
+    //             return $this->translations
+    //                 ->where('field', $field)
+    //                 ->first()?->value ?? $this->$field;
+    //         }
+    //         return $this->getTranslation($field, $language);
+    //     }
+    //     return $this->$field;
+    // }
+
 
     protected function translatableFields(): array
     {
         return config("translatable." . get_class($this) . ".fields") ?? [];
+    }
+
+    public function setLanguage(string $language)
+    {
+        $this->language = $language;
+        return $this;
     }
 }

@@ -76,7 +76,7 @@ class ManagerInvitationController extends Controller
         return $invitation;
     }
 
-    public function accept_invite(AcceptManagerInvitationRequest $request, $token, SmsService $smsService)
+    public function acceptInvite(AcceptManagerInvitationRequest $request, $token, SmsService $smsService)
     {
         $invitation = $this->verify($token);
         if (!$invitation) {

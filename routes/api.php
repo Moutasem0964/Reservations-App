@@ -1,7 +1,6 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-use Illuminate\Http\Request;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\ReservationController;
 use App\Http\Controllers\PlaceController;
@@ -14,11 +13,7 @@ use App\Http\Controllers\SurveyController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\ReviewController;
 use App\Http\Controllers\StatisticsController;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Password;
+
 
 /*
 |--------------------------------------------------------------------------
@@ -32,24 +27,20 @@ use Illuminate\Support\Facades\Password;
 */
 
 
-//Route::delete('/places/{id}', [PlaceController::class, 'destroy']);
-
-
 
 
 // Authentication and account management
-Route::post('/client/register', [AuthController::class, 'client_register']);
-Route::post('/employee/register', [AuthController::class, 'employee_register'])->middleware(['auth:sanctum', 'role:manager']);
-Route::post('/manager/register', [AuthController::class, 'manager_register']);
-Route::post('/manager/login', [AuthController::class, 'manager_login']);
-Route::post('/admin/register', [AuthController::class, 'admin_register'])->middleware(['auth:sanctum', 'role:super_admin']);
+Route::post('/client/register', [AuthController::class, 'clientRegister']);
+Route::post('/employee/register', [AuthController::class, 'employeeRegister'])->middleware(['auth:sanctum', 'role:manager']);
+Route::post('/manager/register', [AuthController::class, 'managerRegister']);
+Route::post('/admin/register', [AuthController::class, 'adminRegister'])->middleware(['auth:sanctum', 'role:super_admin']);
 
 Route::post('/login', [AuthController::class, 'login']);
 Route::post('/verify', [AuthController::class, 'verify']);
-Route::post('/forgot/password', [AuthController::class, 'forgot_password']);
-Route::post('/reset/password', [AuthController::class, 'reset_password']);
-Route::post('request/new/verification/code', [AuthController::class, 'request_new_verification_code']);
-Route::post('/accept/manager/invite/{token}', [ManagerInvitationController::class, 'accept_invite'])
+Route::post('/forgot/password', [AuthController::class, 'forgotPassword']);
+Route::post('/reset/password', [AuthController::class, 'resetPassword']);
+Route::post('request/new/verification/code', [AuthController::class, 'requestNewVerificationCode']);
+Route::post('/accept/manager/invite/{token}', [ManagerInvitationController::class, 'acceptInvite'])
     ->name('accept.manager-invite');
 
 
@@ -66,7 +57,8 @@ Route::middleware('auth:sanctum')->group(function () {
     // ------------------------------
     Route::prefix('users')->group(function () {
 
-        Route::put('profile/update', [UserController::class, 'update_profile']);
+        Route::put('profile/update', [UserController::class, 'updateProfile']);
+        Route::get('places/active',[PlaceController::class,'getActivePlaces']);
     });
 
     // ------------------------------
@@ -118,9 +110,6 @@ Route::middleware('auth:sanctum')->group(function () {
         // Reservations management for the restaurant (list, update status, etc.)
         Route::apiResource('reservations', ReservationController::class)->only(['index', 'update']);
 
-        // Orders (if orders are separate from reservations)
-        Route::apiResource('orders', ReservationController::class)->only(['index', 'update']);
-
         // Employee management (for managers)
         Route::apiResource('employees', UserController::class)->except(['show', 'index']);
 
@@ -139,13 +128,13 @@ Route::middleware('auth:sanctum')->group(function () {
             Route::apiResource('users', UserController::class)->only(['show', 'index']);
             // Manage Users (listing, enabling/disabling, deleting)
             //Route::apiResource('users', UserController::class)->only(['index', 'update', 'destroy', 'show']);
-            Route::put('/user/activation/{id}', [UserController::class, 'user_activation_toggle']);
+            Route::put('/user/activation/{id}', [UserController::class, 'userActivationToggle']);
             // Manage Managers (listing, enabling/disabling, deleting)
 
 
             // Manage Places (restaurants/cafés)
             //Route::apiResource('places', PlaceController::class)->only(['index', 'update', 'destroy']);
-            Route::put('/place/activation/{id}', [PlaceController::class, 'place_activation_toggle']);
+            Route::put('/place/activation/{id}', [PlaceController::class, 'placeActivationToggle']);
             // View logs and global statistics
             Route::get('logs', [NotificationController::class, 'logs']);
             Route::get('statistics', [StatisticsController::class, 'global']);

@@ -87,7 +87,7 @@ class AuthController extends Controller
         ]);
     }
 
-    public function client_register(RegisterRequest $request)
+    public function clientRegister(RegisterRequest $request)
     {
         DB::beginTransaction();
         try {
@@ -115,7 +115,7 @@ class AuthController extends Controller
         }
     }
 
-    public function manager_register(RegisterRequest $userRequest, StorePlaceRequest $placeRequest)
+    public function managerRegister(RegisterRequest $userRequest, StorePlaceRequest $placeRequest)
     {
         DB::beginTransaction();
         try {
@@ -172,7 +172,7 @@ class AuthController extends Controller
     }
 
 
-    public function admin_register(RegisterRequest $request)
+    public function adminRegister(RegisterRequest $request)
     {
         DB::beginTransaction();
         try {
@@ -195,7 +195,7 @@ class AuthController extends Controller
         }
     }
 
-    public function employee_register(RegisterRequest $request)
+    public function employeeRegister(RegisterRequest $request)
     {
         DB::beginTransaction();
         try {
@@ -257,7 +257,7 @@ class AuthController extends Controller
         return response()->json(['message' => 'Verification successful. Please Login!'], 200);
     }
 
-    public function forgot_password(Request $request)
+    public function forgotPassword(Request $request)
     {
         $validatedData = $request->validate([
             'phone_number' => 'required|string|exists:users,phone_number'
@@ -291,7 +291,7 @@ class AuthController extends Controller
         }
     }
 
-    public function reset_password(PasswordResetRequest $request)
+    public function resetPassword(PasswordResetRequest $request)
     {
         $request->validated();
 
@@ -314,7 +314,7 @@ class AuthController extends Controller
         return response()->json(['message' => 'Invalid or expired reset token'], 400);
     }
 
-    public function request_new_verification_code(Request $request)
+    public function requestNewVerificationCode(Request $request)
     {
         $validatedData = $request->validate([
             'phone_number' => 'required|string|exists:users,phone_number'

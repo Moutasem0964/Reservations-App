@@ -12,7 +12,7 @@ use Illuminate\Support\Facades\Log;
 
 class UserController extends Controller
 {
-    public function user_activation_toggle($id)
+    public function userActivationToggle($id)
     {
         DB::beginTransaction();
         try{

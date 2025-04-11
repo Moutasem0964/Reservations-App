@@ -15,7 +15,38 @@ class PlaceController extends Controller
 {
 
 
-    public function place_activation_toggle($id)
+    public function getActivePlaces()
+    {
+        $user = auth()->user();
+        $language = $user->preferences['language'] ?? 'en';
+
+        $query = Place::with([
+            'categories' => function ($query) use ($language) {
+                if ($language === 'ar') {
+                    $query->with('translations');
+                }
+            },
+            'res_types' => function ($query) use ($language) {
+                if ($language === 'ar') {
+                    $query->with('translations');
+                }
+            }
+        ]);
+
+        if ($language === 'ar') {
+            $query->with('translations');
+        }
+
+        $places = $query->where('is_active', true)->get();
+
+        return PlaceResource::collection($places, $language)->additional([
+            'meta' => ['language' => $language, 'count' => $places->count()]
+        ]);
+    }
+
+
+
+    public function placeActivationToggle($id)
     {
         DB::beginTransaction();
         try {
@@ -47,6 +78,8 @@ class PlaceController extends Controller
             ], 500);
         }
     }
+
+
 
 
 
