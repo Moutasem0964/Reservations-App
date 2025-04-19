@@ -19,6 +19,7 @@ return new class extends Migration
             $table->string('password');
             $table->string('photo_path')->nullable();
             $table->json('preferences')->nullable();
+            $table->boolean('is_active')->default(false);
             $table->timestamps();
             $table->softDeletes();
         });

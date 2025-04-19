@@ -97,7 +97,14 @@ return [
             'expire' => 60,
             'throttle' => 60,
         ],
+        'phones' => [ // Custom reset broker for phone numbers
+            'provider' => 'users',
+            'table' => 'password_reset_tokens',
+            'expire' => 60,
+            'throttle' => 60,
+        ],
     ],
+
 
     /*
     |--------------------------------------------------------------------------

@@ -4,6 +4,7 @@ namespace App\Policies;
 
 use App\Models\User;
 use Illuminate\Auth\Access\Response;
+use Illuminate\Support\Facades\Log;
 
 class UserPolicy
 {
@@ -34,9 +35,9 @@ class UserPolicy
     /**
      * Determine whether the user can update the model.
      */
-    public function update(User $user, User $model): bool
+    public function update(User $admin, User $user): bool
     {
-        //
+        return $admin->id !== $user->id && $admin->is_active;
     }
 
     /**
@@ -61,5 +62,15 @@ class UserPolicy
     public function forceDelete(User $user, User $model): bool
     {
         //
+    }
+
+    public function user_activation_toggle(User $admin, User $user): bool
+    {
+        return $admin->id !== $user->id && $admin->is_active;
+    }
+
+    public function login(User $user): bool
+    {
+        return ($user && $user->is_active) ? true : false;
     }
 }

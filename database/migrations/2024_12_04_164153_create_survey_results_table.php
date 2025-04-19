@@ -13,9 +13,9 @@ return new class extends Migration
     {
         Schema::create('survey_results', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('client_id')->constrained('clients')->cascadeOnDelete();
+            $table->foreignId('user_id')->constrained('users')->cascadeOnDelete();
             $table->foreignId('answer_id')->constrained('survey_answers')->cascadeOnDelete();
-            $table->index(['client_id','answer_id']);
+            $table->index(['user_id','answer_id']);
             $table->timestamps();
         });
     }

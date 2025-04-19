@@ -63,4 +63,9 @@ class PlacePolicy
     {
         //
     }
+
+    public function place_activation_toggle(User $admin, Place $place): bool
+    {
+        return $admin->is_active;
+    }
 }

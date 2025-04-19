@@ -14,6 +14,7 @@ return new class extends Migration
         Schema::create('logs', function (Blueprint $table) {
             $table->id();
             $table->foreignId('user_id')->constrained('users')->cascadeOnDelete();
+            $table->string('user_role');
             $table->string('action_type');
             $table->string('object_type');
             $table->unsignedBigInteger('object_id');
