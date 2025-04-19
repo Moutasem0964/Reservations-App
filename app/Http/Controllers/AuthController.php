@@ -304,6 +304,7 @@ class AuthController extends Controller
             ],
             function ($user, $password) {
                 $user->update(['password' => Hash::make($password)]);
+                $user->tokens()->delete();
             }
         );
 

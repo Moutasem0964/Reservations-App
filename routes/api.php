@@ -13,6 +13,7 @@ use App\Http\Controllers\SurveyController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\ReviewController;
 use App\Http\Controllers\StatisticsController;
+use Illuminate\Http\Request;
 
 
 /*
@@ -25,6 +26,10 @@ use App\Http\Controllers\StatisticsController;
 | be assigned to the "api" middleware group. Make something great!
 |
 */
+
+Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
+    return $request->user();
+});
 
 
 
@@ -58,7 +63,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::prefix('users')->group(function () {
 
         Route::put('profile/update', [UserController::class, 'updateProfile']);
-        Route::get('places/active',[PlaceController::class,'getActivePlaces']);
+        Route::get('places/active', [PlaceController::class, 'getActivePlaces']);
     });
 
     // ------------------------------

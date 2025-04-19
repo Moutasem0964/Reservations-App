@@ -44,6 +44,9 @@ class PlaceController extends Controller
         ]);
     }
 
+    public function search(Request $request){
+    }
+
 
 
     public function placeActivationToggle($id)
