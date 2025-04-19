@@ -1,0 +1,292 @@
+{
+    "openapi": "3.0.0",
+    "info": {
+        "title": "Reservation test",
+        "description": "This is the API documentation for my Laravel application",
+        "contact": {
+            "email": "support@example.com"
+        },
+        "license": {
+            "name": "MIT",
+            "url": "https://opensource.org/licenses/MIT"
+        },
+        "version": "1.0.0"
+    },
+    "paths": {
+        "/client/register": {
+            "post": {
+                "tags": [
+                    "Authentication"
+                ],
+                "summary": "Register a client",
+                "operationId": "6da2d276c6b96d5aed6329959916e182",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/ClientRegisterRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Registration successful",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Registration successful"
+                                        },
+                                        "token": {
+                                            "type": "string",
+                                            "example": "1|yourgeneratedtoken..."
+                                        },
+                                        "user": {
+                                            "$ref": "#/components/schemas/User"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "The given data was invalid."
+                                        },
+                                        "errors": {
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Server error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Something went wrong."
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/login": {
+            "post": {
+                "tags": [
+                    "Authentication"
+                ],
+                "summary": "Login using phone number and password",
+                "operationId": "5a84c10e4bf5aaa31b0b0ac853b7ab10",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/LoginRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Successful login",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "You are logged in"
+                                        },
+                                        "token": {
+                                            "type": "string",
+                                            "example": "1|yourgeneratedtoken..."
+                                        },
+                                        "user": {
+                                            "$ref": "#/components/schemas/User"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Wrong credentials"
+                    },
+                    "403": {
+                        "description": "Unauthorized"
+                    }
+                }
+            }
+        }
+    },
+    "components": {
+        "schemas": {
+            "ClientRegisterRequest": {
+                "required": [
+                    "first_name",
+                    "last_name",
+                    "phone_number",
+                    "password",
+                    "password_confirmation",
+                    "first_name_ar",
+                    "last_name_ar"
+                ],
+                "properties": {
+                    "first_name": {
+                        "type": "string"
+                    },
+                    "last_name": {
+                        "type": "string"
+                    },
+                    "first_name_ar": {
+                        "type": "string"
+                    },
+                    "last_name_ar": {
+                        "type": "string"
+                    },
+                    "phone_number": {
+                        "type": "string",
+                        "example": "+9639XXXXXXXX"
+                    },
+                    "password": {
+                        "type": "string"
+                    },
+                    "password_confirmation": {
+                        "type": "string"
+                    },
+                    "preferences": {
+                        "properties": {
+                            "language": {
+                                "type": "string",
+                                "enum": [
+                                    "en",
+                                    "ar"
+                                ]
+                            }
+                        },
+                        "type": "object"
+                    },
+                    "photo": {
+                        "type": "image",
+                        "format": "jpg,jpeg,png",
+                        "nullable": true
+                    }
+                },
+                "type": "object"
+            },
+            "LoginRequest": {
+                "required": [
+                    "phone_number",
+                    "password"
+                ],
+                "properties": {
+                    "phone_number": {
+                        "type": "string",
+                        "example": "+9639xxxxxxxx"
+                    },
+                    "password": {
+                        "type": "string",
+                        "format": "password",
+                        "example": "your_password"
+                    }
+                },
+                "type": "object"
+            },
+            "User": {
+                "title": "User",
+                "description": "Authenticated user data",
+                "properties": {
+                    "id": {
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "first_name": {
+                        "type": "string",
+                        "example": "معتصم Or Moutasem"
+                    },
+                    "last_name": {
+                        "type": "string",
+                        "example": "قصاص Or Qassas"
+                    },
+                    "phone_number": {
+                        "type": "string",
+                        "example": "+963912345678"
+                    },
+                    "photo": {
+                        "type": "string",
+                        "example": "https://example.com/images/profile.jpg",
+                        "nullable": true
+                    },
+                    "preferences": {
+                        "type": "object",
+                        "example": {
+                            "language": "en"
+                        }
+                    },
+                    "role": {
+                        "type": "string",
+                        "example": "manager"
+                    },
+                    "is_active": {
+                        "type": "boolean",
+                        "example": true
+                    },
+                    "created_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "example": "2025-04-19T10:00:00Z"
+                    },
+                    "updated_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "example": "2025-04-19T10:00:00Z"
+                    }
+                },
+                "type": "object"
+            }
+        },
+        "securitySchemes": {
+            "sanctum": {
+                "type": "apiKey",
+                "description": "Enter token in format (Bearer <token>)",
+                "name": "Authorization",
+                "in": "header"
+            }
+        }
+    },
+    "tags": [
+        {
+            "name": "Authentication",
+            "description": "Authentication"
+        }
+    ],
+    "security": [
+        {
+            "sanctum": []
+        }
+    ]
+}

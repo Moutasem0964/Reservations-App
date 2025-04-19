@@ -43,7 +43,6 @@ class AuthServiceProvider extends ServiceProvider
      */
     protected $policies = [
         Analytics::class => AnalyticsPolicy::class,
-        Favorate::class => FavoratePolicy::class,
         Menu::class => MenuPolicy::class,
         Notification::class => NotificationPolicy::class,
         Place::class => PlacePolicy::class,
