@@ -37,13 +37,6 @@ class RegisterRequest extends FormRequest
             'last_name_ar' => 'required|string|max:255',
             'preferences' => 'nullable|array',
             'preferences.language' => 'required_with:preferences|string|in:en,ar',
-            'photo' => [
-                'sometimes',
-                'nullable',
-                'image',
-                'mimes:jpg,jpeg,png',
-                'max:2048',
-            ]
         ];
     }
 }

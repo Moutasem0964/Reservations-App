@@ -4,19 +4,25 @@ namespace App\Swagger\Auth;
 
 /**
  * @OA\Post(
- *     path="/api/client/register",
- *     summary="Register a client",
+ *     path="/api/reset/password",
+ *     summary="Reset user password using phone number and reset token",
  *     tags={"Authentication"},
  *     @OA\RequestBody(
  *         required=true,
- *         @OA\JsonContent(ref="#/components/schemas/ClientRegisterRequest")
+ *         @OA\JsonContent(ref="#/components/schemas/PasswordResetRequest")
  *     ),
  *     @OA\Response(
- *         response=201,
- *         description="Registration successful",
+ *         response=200,
+ *         description="Password reset successful",
  *         @OA\JsonContent(
- *             @OA\Property(property="message", type="string", example="Registration successful Please Verify!"),
- *             @OA\Property(property="user", ref="#/components/schemas/User")
+ *             @OA\Property(property="message", type="string", example="Password reset successful. Please login.")
+ *         )
+ *     ),
+ *     @OA\Response(
+ *         response=400,
+ *         description="Invalid or expired reset token",
+ *         @OA\JsonContent(
+ *             @OA\Property(property="message", type="string", example="Invalid or expired reset token")
  *         )
  *     ),
  *     @OA\Response(
@@ -36,4 +42,4 @@ namespace App\Swagger\Auth;
  *     )
  * )
  */
-class ClientRegisterEndpoint {}
+class PasswordResetEndpoint {}

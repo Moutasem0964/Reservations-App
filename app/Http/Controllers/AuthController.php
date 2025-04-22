@@ -5,7 +5,6 @@ namespace App\Http\Controllers;
 use App\Http\Requests\RegisterRequest;
 use App\Http\Requests\StorePlaceRequest;
 use App\Http\Resources\PlaceResource;
-use App\Helpers\StorageHelper;
 use App\Http\Requests\LoginRequest;
 use App\Http\Requests\PasswordResetRequest;
 use App\Http\Requests\VerifyRequest;
@@ -78,7 +77,6 @@ class AuthController extends Controller
             'last_name' => $request->validated('last_name'),
             'phone_number' => $request->validated('phone_number'),
             'password' => Hash::make($request->validated('password')),
-            'photo_path' => StorageHelper::storeFile($request->file('photo'), 'users_photos'),
             'preferences' => $request->validated('preferences', ['language' => 'en']),
             'is_active' => false,
         ], [
@@ -131,7 +129,6 @@ class AuthController extends Controller
                     'latitude' => $placeRequest->validated('place_latitude')
                 ],
                 'reservation_duration' => $placeRequest->validated('place_reservation_duration', 3),
-                'photo_path' => StorageHelper::storeFile($placeRequest->file('place_photo'), 'places_photos'),
                 'is_active' => false
             ], [
                 'name_ar' => $placeRequest->validated('place_name_ar'),
@@ -332,7 +329,7 @@ class AuthController extends Controller
         $verificationCode=$user->generateVerificationCode($role . '_registration');
         $this->smsService->send($user->phone_number, "Your new verification code is:  {$verificationCode->code}");
         return response()->json([
-            'message' => 'a new verfication code has been sent. Please verify within ' . now()->diffInHours($verificationCode->expire_at)
+            'message' => 'a new verfication code has been sent. Please verify within ' . now()->diffInHours($verificationCode->expires_at)
         ], 200,);
     }
 }

@@ -58,15 +58,10 @@ return [
         'securityDefinitions' => [
             'securitySchemes' => [
                 'sanctum' => [
-                    'type' => 'apiKey',
+                    'type' => 'http',
+                    'scheme' => 'bearer',
+                    'bearerFormat' => 'Sanctum Token',
                     'description' => 'Enter token in format (Bearer <token>)',
-                    'name' => 'Authorization',
-                    'in' => 'header',
-                ],
-            ],
-            'security' => [
-                [
-                    'sanctum' => [],
                 ],
             ],
         ],
