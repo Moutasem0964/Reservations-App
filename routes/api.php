@@ -44,7 +44,7 @@ Route::post('/login', [AuthController::class, 'login']);
 Route::post('/verify', [AuthController::class, 'verify']);
 Route::post('/forgot/password', [AuthController::class, 'forgotPassword']);
 Route::post('/reset/password', [AuthController::class, 'resetPassword']);
-Route::post('request/new/verification/code', [AuthController::class, 'requestNewVerificationCode']);
+Route::post('/request/new/verification/code', [AuthController::class, 'requestNewVerificationCode']);
 Route::post('/accept/manager/invite/{token}', [ManagerInvitationController::class, 'acceptInvite'])
     ->name('accept.manager-invite');
 

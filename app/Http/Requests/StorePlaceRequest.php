@@ -39,13 +39,6 @@ class StorePlaceRequest extends FormRequest
             'categories.*' => 'integer|exists:categories,id', // Each item must be a valid ID from the categories table
             'res_types' => 'required|array',
             'res_types.*' => 'integer|exists:res_types,id',
-            'photo' => [
-                'sometimes',
-                'nullable',
-                'image',
-                'mimes:jpg,jpeg,png',
-                'max:2048',
-            ]
         ];
     }
 
