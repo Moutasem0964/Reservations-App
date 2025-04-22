@@ -66,7 +66,7 @@ return [
             ],
         ],
 
-        'generate_always' => env('L5_SWAGGER_GENERATE_ALWAYS', false),
+        'generate_always' => true, //env('L5_SWAGGER_GENERATE_ALWAYS', false),
         'generate_yaml_copy' => env('L5_SWAGGER_GENERATE_YAML_COPY', false),
         'proxy' => false,
         'additional_config_url' => null,
@@ -88,7 +88,7 @@ return [
         ],
 
         'constants' => [
-            'L5_SWAGGER_CONST_HOST' => env('L5_SWAGGER_CONST_HOST', 'http://my-default-host.com'),
+            'L5_SWAGGER_CONST_HOST' => '' //env('L5_SWAGGER_CONST_HOST', 'http://my-default-host.com'),
         ],
     ],
 ];

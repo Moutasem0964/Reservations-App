@@ -10,7 +10,7 @@ use OpenApi\Annotations as OA;
  *     version="1.0.0",
  *     description="This is the API documentation for my Laravel application",
  *     @OA\Contact(
- *         email="support@example.com"
+ *         email="moutasem.qassas@gmail.com"
  *     ),
  *     @OA\License(
  *         name="MIT",
