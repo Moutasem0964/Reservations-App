@@ -12,7 +12,7 @@ return [
                 'api' => 'api/documentation',
             ],
             'paths' => [
-                'use_absolute_path' => env('L5_SWAGGER_USE_ABSOLUTE_PATH', true),
+                'use_absolute_path' => env('L5_SWAGGER_USE_ABSOLUTE_PATH', false),
                 'swagger_ui_assets_path' => env('L5_SWAGGER_UI_ASSETS_PATH', 'vendor/swagger-api/swagger-ui/dist/'),
                 'docs_json' => 'api-docs.json',
                 'docs_yaml' => 'api-docs.yaml',
@@ -44,7 +44,7 @@ return [
             'base' => env('L5_SWAGGER_BASE_PATH', null),
             'excludes' => [],
         ],
-        'scheme' => 'https', // Force HTTPS explicitly
+        'schemes' => ['https'], // Force HTTPS explicitly
         'constants' => [
             'L5_SWAGGER_CONST_HOST' => env('L5_SWAGGER_CONST_HOST'),
         ],
