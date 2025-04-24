@@ -44,6 +44,10 @@ return [
             'base' => env('L5_SWAGGER_BASE_PATH', null),
             'excludes' => [],
         ],
+        'scheme' => 'https', // Force HTTPS explicitly
+        'constants' => [
+            'L5_SWAGGER_CONST_HOST' => env('L5_SWAGGER_CONST_HOST'),
+        ],
 
         'scanOptions' => [
             'default_processors_configuration' => [],
