@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Swagger\Table;
+namespace App\Swagger\Place;
 
 /**
  * @OA\Post(
