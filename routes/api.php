@@ -101,28 +101,30 @@ Route::middleware('auth:sanctum')->group(function () {
     // ------------------------------
     // Representative (Manager/Employee) Endpoints
     // ------------------------------
-    Route::prefix('representative')->group(function () {
-        // Representative registration & login endpoints might be public, but included here for authenticated actions
-        // Table Management
-        Route::apiResource('tables', TableController::class);
+    Route::middleware('role:manager|employee')->group(function () {
+        Route::prefix('representative')->group(function () {
+            // Representative registration & login endpoints might be public, but included here for authenticated actions
+            // Table Management
+            Route::apiResource('tables', TableController::class)->only('store');
 
-        // Menu Management
-        Route::apiResource('menus', MenuController::class);
+            // Menu Management
+            Route::apiResource('menus', MenuController::class);
 
-        // Offers/Events
-        Route::apiResource('offers', PlaceController::class)->except(['index', 'show']);
+            // Offers/Events
+            Route::apiResource('offers', PlaceController::class)->except(['index', 'show']);
 
-        // Reservations management for the restaurant (list, update status, etc.)
-        Route::apiResource('reservations', ReservationController::class)->only(['index', 'update']);
+            // Reservations management for the restaurant (list, update status, etc.)
+            Route::apiResource('reservations', ReservationController::class)->only(['index', 'update']);
 
-        // Employee management (for managers)
-        Route::apiResource('employees', UserController::class)->except(['show', 'index']);
+            // Employee management (for managers)
+            Route::apiResource('employees', UserController::class)->except(['show', 'index']);
 
-        // View statistics
-        Route::get('statistics', [StatisticsController::class, 'index']);
+            // View statistics
+            Route::get('statistics', [StatisticsController::class, 'index']);
 
-        // Change settings for representative account
-        Route::put('settings', [UserController::class, 'updateSettings']);
+            // Change settings for representative account
+            Route::put('settings', [UserController::class, 'updateSettings']);
+        });
     });
 
     // ------------------------------
