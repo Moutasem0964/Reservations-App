@@ -12,6 +12,13 @@ class Table extends Model
 {
     use HasFactory, HasTranslations, HasLogs, HasAnalytics;
 
+    protected $fillable=[
+        'place_id',
+        'number',
+        'capacity',
+        'status'
+    ];
+
     public function place(){
         return $this->belongsTo(Place::class);
     }
@@ -20,18 +27,8 @@ class Table extends Model
         return $this->hasMany(Reservation::class);
     }
 
-    // public function translations()
-    // {
-    //     return $this->morphMany(Translation::class, 'translatable');
-    // }
+    public function photos(){
+        return $this->hasMany(TablePhoto::class);
+    }
 
-    // public function logs()
-    // {
-    //     return $this->morphMany(Log::class, 'object', 'object_type', 'object_id');
-    // }
-
-    // public function analytics()
-    // {
-    //     return $this->morphMany(Analytics::class, 'object', 'object_type', 'object_id');
-    // }
 }
