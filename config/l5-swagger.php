@@ -21,6 +21,7 @@ return [
                     base_path('app/Swagger/Swagger.php'),  // Swagger.php file if it exists
                     base_path('app/Swagger/Auth'),        // Include Auth folder
                     base_path('app/Swagger/Schemas'),     // Include Schemas folder
+                    base_path('app/Swagger/Place'), // Ensure Place folder is being scanned
                 ],
             ],
         ],
