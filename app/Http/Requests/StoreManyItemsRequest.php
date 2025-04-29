@@ -3,10 +3,9 @@
 namespace App\Http\Requests;
 
 use App\Traits\HasPlaceId;
-use Illuminate\Validation\Rule;
 use Illuminate\Foundation\Http\FormRequest;
 
-class StoreTableRequest extends FormRequest
+class StoreManyItemsRequest extends FormRequest
 {
     use HasPlaceId;
     /**
@@ -16,13 +15,10 @@ class StoreTableRequest extends FormRequest
     {
         return true;
     }
-
     protected function prepareForValidation()
     {
         $this->injectPlaceId();
     }
-
-
 
     /**
      * Get the validation rules that apply to the request.
@@ -33,22 +29,13 @@ class StoreTableRequest extends FormRequest
     {
         return [
             'place_id' => ['required', 'exists:places,id'],
-            'number' => [
-                'required',
-                'integer',
-                'min:1',
-                Rule::unique('tables')->where(
-                    fn($query) =>
-                    $query->where('place_id', $this->place_id)
-                ),
-            ],
-            'capacity' => ['required', 'integer', 'min:1'],
-            'photo' => [
-                'required',
-                'image', // Ensure it's an image file
-                'mimes:jpg,jpeg,png', // Allowed file types
-                'max:2048', // Maximum file size in kilobytes (2MB)
-            ],
+            'menu_id' => ['required', 'exists:menus,id'],
+            'items' => ['required', 'array', 'min:1'],
+            'items.*.name' => ['required', 'string', 'max:255'],
+            'items.*.description' => ['nullable', 'string', 'max:1000'],
+            'items.*.price' => ['required', 'numeric', 'min:0'],
+            'items.*.available' => ['required', 'boolean'],
+            'items.*.photo' => ['nullable', 'image', 'mimes:jpg,jpeg,png', 'max:2048'],
         ];
     }
 }

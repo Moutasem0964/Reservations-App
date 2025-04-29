@@ -2,11 +2,13 @@
 
 namespace App\Http\Requests;
 
+use App\Traits\HasPlaceId;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
 class StoreItemRequest extends FormRequest
 {
+    use HasPlaceId;
     /**
      * Determine if the user is authorized to make this request.
      */
@@ -17,15 +19,7 @@ class StoreItemRequest extends FormRequest
 
     protected function prepareForValidation()
     {
-        $user = auth()->user();
-        $userAsRole = $user->manager ??
-            $user->employee ??
-            abort(403, 'Unauthorized action');
-        $place_id = $userAsRole->place_id;
-        $this->merge([
-            'UserAsRole' => $userAsRole,
-            'place_id' => $place_id
-        ]);
+        $this->injectPlaceId();
     }
     /**
      * Get the validation rules that apply to the request.
@@ -35,15 +29,14 @@ class StoreItemRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'UserAsRole' => 'required',
-            'place_id' => 'required',
+            'place_id' => ['required', 'exists:places,id'],
             'menu_id' => 'required|exists:menus,id',
             'name' => ['required', 'string', 'max:255', Rule::unique('items')->where(function ($query) {
                 return $query->where('menu_id', $this->menu_id);
             })],
             'description' => 'nullable|string|max:1000',
             'price' => 'required|numeric|min:0',
-            'available' => 'nullable|boolean',
+            'available' => 'required|boolean',
             'photo' => [
                 'nullable',
                 'image', // Ensure it's an image file

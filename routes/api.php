@@ -117,7 +117,7 @@ Route::middleware('auth:sanctum')->group(function () {
             Route::apiResource('menus', MenuController::class);
 
             Route::apiResource('/menu/items',ItemController::class)->only('store');
-            Route::post('/menu/store/many/items',[ItemController::class,'storeItem']);
+            Route::post('/menu/store/many/items',[ItemController::class,'storeManyItems']);
 
             // Offers/Events
             Route::apiResource('offers', PlaceController::class)->except(['index', 'show']);

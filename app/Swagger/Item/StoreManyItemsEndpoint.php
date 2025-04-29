@@ -4,25 +4,29 @@ namespace App\Swagger\Item;
 
 /**
  * @OA\Post(
- *     path="/api/representative/menu/items",
- *     operationId="storeItem",
+ *     path="/api/representative/menu/store/many/items",
+ *     operationId="storeManyItems",
  *     tags={"Items"},
- *     summary="Create a new item in a menu. (Requires a Manager or Employee privileges!)",
+ *     summary="Store multiple items in a menu. (Requires Manager or Employee privileges!)",
  *     security={{"Sanctum":{}}},
  *     @OA\RequestBody(
  *         required=true,
- *         description="Table creation data",
+ *         description="Bulk item creation payload",
  *         @OA\MediaType(
  *             mediaType="multipart/form-data",
- *             @OA\Schema(ref="#/components/schemas/StoreItemRequest")
+ *             @OA\Schema(ref="#/components/schemas/StoreManyItemsRequest")
  *         )
  *     ),
  *     @OA\Response(
  *         response=201,
- *         description="Item created successfully",
+ *         description="Items created successfully",
  *         @OA\JsonContent(
- *             @OA\Property(property="message", type="string", example="created successfuly in Menu: Appetizers"),
- *             @OA\Property(property="item", ref="#/components/schemas/Item")
+ *             @OA\Property(property="message", type="string", example="created successfuly"),
+ *             @OA\Property(
+ *                 property="items",
+ *                 type="array",
+ *                 @OA\Items(ref="#/components/schemas/Item")
+ *             )
  *         )
  *     ),
  *     @OA\Response(
@@ -46,7 +50,7 @@ namespace App\Swagger\Item;
  *         @OA\JsonContent(
  *             @OA\Property(property="message", type="string", example="Unauthenticated")
  *         )
- *     ),
+ *     )
  * )
  */
-class StoreItemEndpoint {}
+class StoreManyItemsEndpoint {}
