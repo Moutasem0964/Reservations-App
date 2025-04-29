@@ -8,6 +8,7 @@ use App\Http\Controllers\UserController;
 use App\Http\Controllers\TableController;
 use App\Http\Controllers\MenuController;
 use App\Http\Controllers\FeedbackController;
+use App\Http\Controllers\ItemController;
 use App\Http\Controllers\ManagerInvitationController;
 use App\Http\Controllers\SurveyController;
 use App\Http\Controllers\NotificationController;
@@ -114,6 +115,9 @@ Route::middleware('auth:sanctum')->group(function () {
 
             // Menu Management
             Route::apiResource('menus', MenuController::class);
+
+            Route::apiResource('/menu/items',ItemController::class)->only('store');
+            Route::post('/menu/store/many/items',[ItemController::class,'storeItem']);
 
             // Offers/Events
             Route::apiResource('offers', PlaceController::class)->except(['index', 'show']);

@@ -5,7 +5,7 @@ namespace App\Swagger\Place;
 /**
  * @OA\Post(
  *     path="/api/representative/tables",
- *     summary="Create a new table",
+ *     summary="Create a new table. (Requires Manager Or Employee Privileges!)",
  *     tags={"Tables"},
  *     security={{"sanctum": {}}},
  *     @OA\RequestBody(

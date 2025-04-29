@@ -12,22 +12,16 @@ class Item extends Model
 {
     use HasFactory, HasTranslations, HasLogs, HasAnalytics;
 
+    protected $fillable=[
+        'menu_id',
+        'name',
+        'description',
+        'price',
+        'available',
+        'photo'
+    ];
+
     public function menu(){
         return $this->belongsTo(Menu::class);
     }
-
-    // public function translations()
-    // {
-    //     return $this->morphMany(Translation::class, 'translatable');
-    // }
-
-    // public function logs()
-    // {
-    //     return $this->morphMany(Log::class, 'object', 'object_type', 'object_id');
-    // }
-
-    // public function analytics()
-    // {
-    //     return $this->morphMany(Analytics::class, 'object', 'object_type', 'object_id');
-    // }
 }

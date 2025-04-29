@@ -9,6 +9,7 @@ use Illuminate\Foundation\Support\Providers\AuthServiceProvider as ServiceProvid
 use App\Models\Analytics;
 use App\Models\Employee;
 use App\Models\Favorate;
+use App\Models\Item;
 use App\Models\ManagerInvitation;
 use App\Models\Menu;
 use App\Models\Notification;
@@ -23,6 +24,7 @@ use App\Policies\AnalyticsPolicy;
 
 use App\Policies\EmployeePolicy;
 use App\Policies\FavoratePolicy;
+use App\Policies\ItemPolicy;
 use App\Policies\ManagerInvitationPolicy;
 use App\Policies\MenuPolicy;
 use App\Policies\NotificationPolicy;
@@ -54,6 +56,7 @@ class AuthServiceProvider extends ServiceProvider
         User::class => UserPolicy::class,
         Employee::class => EmployeePolicy::class,
         ManagerInvitation::class => ManagerInvitationPolicy::class,
+        Item::class => ItemPolicy::class,
 
 
     ];
@@ -64,6 +67,5 @@ class AuthServiceProvider extends ServiceProvider
     public function boot()
     {
         $this->registerPolicies();
-        
     }
 }

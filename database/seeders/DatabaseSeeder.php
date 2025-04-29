@@ -21,7 +21,8 @@ class DatabaseSeeder extends Seeder
         $this->call([
             SuperAdminSeeder::class,
             CategorySeeder::class,
-            ResTypeSeeder::class
+            ResTypeSeeder::class,
+            MenuSeeder::class
         ]);
     }
 }

@@ -22,6 +22,7 @@ return [
                     base_path('app/Swagger/Auth'),        // Include Auth folder
                     base_path('app/Swagger/Schemas'),     // Include Schemas folder
                     base_path('app/Swagger/Place'), // Ensure Place folder is being scanned
+                    base_path('app/Swagger/Item'),
                 ],
             ],
         ],
