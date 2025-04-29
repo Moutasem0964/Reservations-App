@@ -36,6 +36,9 @@ namespace App\Swagger\Item;
  *     @OA\Response(
  *         response=403,
  *         description="Unauthorized action"
+ *         @OA\JsonContent(
+ *             @OA\Property(property="message", type="string", example="Unauthorized action Requires Manager Or Employee Privileges"),
+ *         )
  *     ),
  *     @OA\Response(
  *         response=401,
