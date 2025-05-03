@@ -20,4 +20,15 @@ return [
         'fields' => ['name'],
         'ar_suffix' => '_ar'
     ],
+    'App\Models\Menu' => [
+        'fields' => ['name'],
+        'ar_suffix' => '_ar'
+    ],
+    'App\Models\Item' => [
+        'fields' => [
+            'name',
+            'description',
+        ],
+        'ar_suffix' => '_ar'
+    ],
 ];

@@ -77,7 +77,8 @@ Route::middleware('auth:sanctum')->group(function () {
     // ------------------------------
     Route::prefix('client')->group(function () {
         // Use API Resource for Reservations (CRUD)
-        Route::apiResource('reservations', ReservationController::class);
+
+        Route::apiResource('reservations', ReservationController::class)->only('store');
 
 
         // Reviews (if you have a separate ReviewController, use it; otherwise, if reviews are part of places, adjust accordingly)

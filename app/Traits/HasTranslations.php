@@ -110,4 +110,22 @@ trait HasTranslations
         $this->language = $language;
         return $this;
     }
+
+    public function validateTranslatableFields($request, $validator, array $fields)
+    {
+        foreach ($fields as $field) {
+            $fieldAr = $field . '_ar';
+
+            $hasOriginal = !empty($request->input($field));
+            $hasTranslation = !empty($request->input($fieldAr));
+
+            if ($hasOriginal && !$hasTranslation) {
+                $validator->errors()->add($fieldAr, ucfirst($fieldAr) . ' is required when ' . $field . ' is present.');
+            }
+
+            if ($hasTranslation && !$hasOriginal) {
+                $validator->errors()->add($field, ucfirst($field) . ' is required when ' . $fieldAr . ' is present.');
+            }
+        }
+    }
 }

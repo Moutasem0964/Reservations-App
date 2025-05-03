@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Helpers\StorageHelper;
 use App\Http\Requests\StoreItemRequest;
 use App\Http\Requests\StoreManyItemsRequest;
+use App\Http\Resources\ItemResource;
 use App\Models\Item;
 use App\Models\Menu;
 use Exception;
@@ -25,7 +26,7 @@ class ItemController extends Controller
             ], 401);
         }
 
-        $item = Item::create([
+        $item = Item::createWithTranslations([
             'menu_id' => $validatedData['menu_id'],
             'name' => $validatedData['name'],
             'description' => $validatedData['description'] ?? null,
@@ -34,10 +35,13 @@ class ItemController extends Controller
             'photo' => isset($validatedData['photo'])
                 ? StorageHelper::storeFile($validatedData['photo'], 'ItemsPhotos')
                 : null,
+        ], [
+            'name_ar' => $validatedData['name_ar'],
+            'description_ar' => $validatedData['description_ar'] ?? null
         ]);
         return response()->json([
             'message' => 'created successfuly in Menu: ' . $menu->name,
-            'item' => $item,
+            'item' => new ItemResource($item, $request->user()->preferences['language']),
         ], 201);
     }
 
@@ -54,7 +58,7 @@ class ItemController extends Controller
             $createdItems = [];
 
             foreach ($validatedData['items'] as $item) {
-                $createdItem = Item::create([
+                $createdItem = Item::createWithTranslations([
                     'menu_id' => $menu->id,
                     'name' => $item['name'],
                     'description' => $item['description'] ?? null,
@@ -63,9 +67,12 @@ class ItemController extends Controller
                     'photo' => isset($item['photo'])
                         ? StorageHelper::storeFile($item['photo'], 'ItemsPhotos')
                         : null,
+                ], [
+                    'name_ar' => $item['name_ar'],
+                    'description_ar' => $item['description_ar'] ?? null
                 ]);
 
-                $createdItems[] = $createdItem;
+                $createdItems[] = new ItemResource($createdItem, $request->user()->preferences['language']);
             }
 
             DB::commit();
@@ -74,12 +81,11 @@ class ItemController extends Controller
                 'message' => 'Items created successfully in Menu: ' . $menu->name,
                 'items' => $createdItems,
             ], 201);
-        }catch(AuthorizationException $e){
+        } catch (AuthorizationException $e) {
             return response()->json([
-                'message' => 'the selected menu is not for your place!! '.$e->getMessage()
+                'message' => 'the selected menu is not for your place!! ' . $e->getMessage()
             ], 401);
-        }
-        catch (Exception $e) {
+        } catch (Exception $e) {
             DB::rollBack();
 
             return response()->json([

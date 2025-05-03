@@ -3,7 +3,6 @@
 namespace Database\Seeders;
 
 use App\Models\Res_type;
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
 class ResTypeSeeder extends Seeder
@@ -14,6 +13,9 @@ class ResTypeSeeder extends Seeder
     public function run(): void
     {
         $reservationTypes = [
+
+            ['name' => 'Cards', 'name_ar' => 'شدةأوراق لعب'],
+            ['name' => 'Drinks', 'name_ar' => 'مشاريب'],
             // Standard Dining
             ['name' => 'Dinner Reservation', 'name_ar' => 'حجز عشاء'],
             ['name' => 'Lunch Reservation', 'name_ar' => 'حجز غداء'],
